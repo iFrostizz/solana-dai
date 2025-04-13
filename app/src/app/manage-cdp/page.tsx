@@ -43,8 +43,9 @@ export default function ManageCDP() {
       if (!result.success) {
         alert(result.message);
       }
-    } catch (err: any) {
-      alert(err.message || `Failed to execute ${actionType}`);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
+      alert(errorMessage || `Failed to execute ${actionType}`);
     } finally {
       setIsActionExecuting(false);
     }
@@ -193,7 +194,7 @@ export default function ManageCDP() {
             </div>
             <h3 className="text-lg font-medium mb-2">No Vaults Found</h3>
             <p className="text-muted-foreground">
-              You don't have any active vaults. Create a CDP to get started.
+              You don&apos;t have any active vaults. Create a CDP to get started.
             </p>
           </div>
           <Button

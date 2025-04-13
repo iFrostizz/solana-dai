@@ -1,7 +1,6 @@
 import React from 'react';
 import Header from '@/components/Header';
 import Link from 'next/link';
-import Image from 'next/image';
 import { Button } from '@/components/ui/Button';
 
 export default function Home() {
@@ -53,7 +52,7 @@ export default function Home() {
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">Why Choose Solana DAI</h2>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              Built on Solana's high-performance blockchain, our stablecoin provides the best of both worlds - stability and speed.
+              Built on Solana&apos;s high-performance blockchain, our stablecoin provides the best of both worlds - stability and speed.
             </p>
           </div>
           
@@ -80,7 +79,7 @@ export default function Home() {
               </div>
               <h3 className="text-xl font-bold mb-2">Lightning Fast</h3>
               <p className="text-muted-foreground">
-                Built on Solana's high-performance blockchain, enjoy sub-second finality and low transaction costs.
+                Built on Solana&apos;s high-performance blockchain, enjoy sub-second finality and low transaction costs.
               </p>
             </div>
             
@@ -180,7 +179,7 @@ export default function Home() {
             <div className="mb-4 md:mb-0">
               <span className="text-lg font-bold gradient-text">Solana DAI</span>
               <p className="text-sm text-muted-foreground mt-1">
-                2025 Solana DAI. All rights reserved.
+                &copy; 2025 Solana DAI. All rights reserved.
               </p>
             </div>
             <div className="flex space-x-6">

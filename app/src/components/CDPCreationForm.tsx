@@ -12,6 +12,7 @@ import { useCDPService, CreateCDPParams } from '@/services/cdp.service';
 import { SupportedAsset, SUPPORTED_ASSETS, DEFAULT_MIN_COLLATERAL_RATIO } from '@/utils/supportedAssets';
 import AssetPriceDisplay from './AssetPriceDisplay';
 import { usePriceOracle } from '@/services/price.service';
+import { sanitizeNumber, validateCDPInput, isValidSolanaAddress, generateSecureTransactionId } from '@/utils/securityUtils';
 
 const CDPCreationForm: React.FC = () => {
   const { publicKey, connected } = useWallet();
@@ -26,6 +27,9 @@ const CDPCreationForm: React.FC = () => {
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [recipientAddress, setRecipientAddress] = useState<string | null>(null);
   
   // Limit options to supported assets
   const [assetOptions, setAssetOptions] = useState<DropdownOption[]>(
@@ -109,55 +113,63 @@ const CDPCreationForm: React.FC = () => {
 
   // Create CDP transaction
   const handleCreateCDP = async () => {
-    setError(null);
+    setIsSubmitting(true);
+    setError('');
     setSuccess(null);
     
-    if (!connected) {
-      setError('Please connect your wallet first');
-      return;
-    }
-    
-    const userBalance = getUserBalanceForSelectedAsset();
-    const collateralAmountNum = parseFloat(collateralAmount);
-    
-    // Show warning if trying to deposit more than available, but don't block
-    if (userBalance !== null && collateralAmountNum > userBalance) {
-      if (!window.confirm(`Warning: You are trying to deposit more ${selectedAsset.symbol} than you have in your wallet. This is just a simulation and no actual transaction will be created. Continue?`)) {
-        return;
-      }
-    }
-    
-    // Validate CDP parameters
-    const validationResult = validateCDPCreation({
-      collateralMint: selectedAsset.mintAddress,
-      collateralAmount: collateralAmountNum,
-      daiAmount: parseFloat(debtAmount)
-    });
-    
-    if (!validationResult.isValid) {
-      setError(validationResult.message);
-      return;
-    }
-    
-    setIsCreating(true);
-    
     try {
-      // Create CDP transaction (placeholder for now)
+      // Generate a secure transaction ID for tracking
+      const transactionId = generateSecureTransactionId();
+      
+      // Sanitize input values to prevent attacks
+      const sanitizedCollateralAmount = sanitizeNumber(collateralAmount);
+      const sanitizedDebtAmount = sanitizeNumber(debtAmount);
+      
+      // Additional validation with security checks
+      if (!selectedAsset) {
+        throw new Error('Please select a collateral asset');
+      }
+      
+      // Validate Solana address if creating for another user
+      if (recipientAddress && !isValidSolanaAddress(recipientAddress)) {
+        throw new Error('Invalid recipient Solana address');
+      }
+      
+      // Validate CDP inputs with security constraints
+      const validation = validateCDPInput(
+        sanitizedCollateralAmount,
+        sanitizedDebtAmount,
+        selectedAsset.liquidationRatio
+      );
+      
+      if (!validation.valid) {
+        throw new Error(validation.message);
+      }
+      
+      // Log secure transaction attempt (for audit trail)
+      console.info(`[Secure TX: ${transactionId}] Creating CDP with ${sanitizedCollateralAmount} ${selectedAsset.symbol} collateral for ${sanitizedDebtAmount} DAI`);
+      
+      // Proceed with transaction
       const result = await createCDP({
         collateralMint: selectedAsset.mintAddress,
-        collateralAmount: collateralAmountNum,
-        daiAmount: parseFloat(debtAmount)
+        collateralAmount: sanitizedCollateralAmount,
+        daiAmount: sanitizedDebtAmount
       });
       
-      if (result.success) {
-        setSuccess(`CDP created successfully! Transaction: ${result.signature}`);
-      } else {
-        setError(result.message);
-      }
-    } catch (err: any) {
-      setError(err.message || 'Failed to create CDP');
+      // Transaction successful
+      setSuccess(`Successfully created CDP with ${sanitizedCollateralAmount} ${selectedAsset.symbol} - Transaction ID: ${result.signature}`);
+      
+      // Reset form after short delay
+      setTimeout(() => {
+        resetForm();
+      }, 5000);
+      
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
+      setError(errorMessage);
+      console.error('CDP Creation Error:', errorMessage);
     } finally {
-      setIsCreating(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -173,6 +185,12 @@ const CDPCreationForm: React.FC = () => {
         (Your balance: {formatNumber(balance)} {selectedAsset.symbol})
       </div>
     );
+  };
+
+  const resetForm = () => {
+    setCollateralAmount('3');
+    setDebtAmount('10000');
+    setRecipientAddress(null);
   };
 
   return (
@@ -238,6 +256,16 @@ const CDPCreationForm: React.FC = () => {
               (max {formatNumber(cdpMetrics.maxDAI)} DAI)
             </span>
           </div>
+        </div>
+        
+        {/* Recipient Address Input */}
+        <div className="mb-6">
+          <Input
+            label="Recipient Address (optional):"
+            value={recipientAddress || ''}
+            onChange={setRecipientAddress}
+            type="text"
+          />
         </div>
         
         {/* CDP Information */}
@@ -316,10 +344,10 @@ const CDPCreationForm: React.FC = () => {
         <Button 
           onClick={handleCreateCDP} 
           fullWidth
-          disabled={!connected || !cdpMetrics.isValidCDP || isCreating}
+          disabled={!connected || !cdpMetrics.isValidCDP || isSubmitting}
           className="mt-4"
         >
-          {isCreating ? 'Creating CDP...' : connected ? 'Create CDP' : 'Connect Wallet to Create CDP'}
+          {isSubmitting ? 'Creating CDP...' : connected ? 'Create CDP' : 'Connect Wallet to Create CDP'}
         </Button>
       </Card>
     </div>

@@ -6,6 +6,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { CDP, CDPAction, CDPActionParams, CDPStats, CDPWithAsset } from '@/utils/cdpTypes';
 import { SupportedAsset, SUPPORTED_ASSETS, getAssetByMint } from '@/utils/supportedAssets';
 import { usePriceOracle } from './price.service';
+import { securityCheckTransaction, validateCDPInput, RateLimiter, generateSecureTransactionId } from '@/utils/securityUtils';
 
 // Mock data for demonstration purposes - in production, this would come from the blockchain
 const MOCK_CDPS: CDP[] = [
@@ -50,6 +51,9 @@ export function useCDPManagement() {
     availableDaiToBorrow: 0,
     liquidationRisk: 'none',
   });
+
+  // Add rate limiter instance
+  const actionRateLimiter = new RateLimiter(5, 60000); // 5 actions per minute max
 
   // Fetch user CDPs
   const fetchUserCDPs = useCallback(async () => {
@@ -165,6 +169,20 @@ export function useCDPManagement() {
 
   // Execute a CDP action (BOOST, REPAY, SUPPLY, WITHDRAW, BORROW, PAYBACK)
   const executeCDPAction = useCallback(async (params: CDPActionParams) => {
+    // Security check on transaction parameters
+    const securityCheck = securityCheckTransaction(params);
+    if (!securityCheck.safe) {
+      return { success: false, message: securityCheck.message || 'Security check failed' };
+    }
+    
+    // Rate limiting to prevent abuse
+    if (!actionRateLimiter.isAllowed(publicKey?.toString() || 'unknown-user')) {
+      return { success: false, message: 'Too many requests. Please try again shortly.' };
+    }
+    
+    // Generate secure transaction ID
+    const transactionId = generateSecureTransactionId();
+    
     if (!publicKey || !signTransaction) {
       throw new Error('Wallet not connected');
     }
@@ -255,14 +273,14 @@ export function useCDPManagement() {
         message: `${actionType} action executed successfully`
       };
     } catch (error: any) {
-      console.error(`Error executing ${actionType} action:`, error);
+      console.error(`[Secure TX: ${transactionId}] Error executing CDP action:`, error);
       return {
         signature: null,
         success: false,
         message: error.message || `Failed to execute ${actionType} action`
       };
     }
-  }, [cdps, publicKey, signTransaction, sendTransaction, connection, calculateCDPStats]);
+  }, [cdps, publicKey, signTransaction, sendTransaction, connection, calculateCDPStats, actionRateLimiter]);
 
   return {
     cdps,

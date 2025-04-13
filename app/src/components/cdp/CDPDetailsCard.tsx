@@ -1,132 +1,121 @@
 "use client";
 
-import React, { useState } from 'react';
+import React from 'react';
 import { CDPWithAsset } from '@/utils/cdpTypes';
-import Card from '../ui/Card';
-import { formatNumber, formatPercent, formatUSD } from '@/utils/cdp';
-import AssetPriceDisplay from '../AssetPriceDisplay';
-import Button from '../ui/Button';
+import { formatNumber, formatPercent, formatUSD, formatDate } from '@/utils/format';
+import { Card } from '../ui/Card';
+import { Button } from '../ui/Button';
 
 interface CDPDetailsCardProps {
   cdp: CDPWithAsset;
   onManage: (cdp: CDPWithAsset) => void;
 }
 
-const CDPDetailsCard: React.FC<CDPDetailsCardProps> = ({ cdp, onManage }) => {
-  // Calculate health factor: ratio of current collateral ratio to liquidation ratio
-  const healthFactor = cdp.collateralRatio / cdp.asset.liquidationRatio;
+export default function CDPDetailsCard({ cdp, onManage }: CDPDetailsCardProps) {
+  // Function to determine health status color
+  const getHealthColor = () => {
+    const ratio = cdp.collateralRatio;
+    const min = cdp.asset.liquidationRatio;
+    
+    if (ratio < min * 1.1) {
+      return 'text-error'; // Danger
+    } else if (ratio < min * 1.5) {
+      return 'text-warning'; // Warning
+    } else {
+      return 'text-success'; // Safe
+    }
+  };
   
-  // Determine health status based on health factor
+  // Function to get health status text
   const getHealthStatus = () => {
-    if (healthFactor > 2) return { text: 'Excellent', color: 'text-green-500' };
-    if (healthFactor > 1.5) return { text: 'Good', color: 'text-green-400' };
-    if (healthFactor > 1.2) return { text: 'Moderate', color: 'text-yellow-500' };
-    if (healthFactor > 1.05) return { text: 'At Risk', color: 'text-orange-500' };
-    return { text: 'Danger', color: 'text-red-500' };
+    const ratio = cdp.collateralRatio;
+    const min = cdp.asset.liquidationRatio;
+    
+    if (ratio < min * 1.1) {
+      return 'At Risk';
+    } else if (ratio < min * 1.5) {
+      return 'Warning';
+    } else {
+      return 'Safe';
+    }
   };
   
-  const healthStatus = getHealthStatus();
-  
-  // Calculate current collateral value
-  const collateralValue = cdp.collateralAmount * cdp.asset.priceUSD;
-  
-  // Format dates
-  const formatDate = (date: Date) => {
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
-
   return (
-    <Card className="w-full">
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-semibold">
-          {cdp.asset.symbol} Vault
-        </h3>
-        <div className={`px-2 py-1 rounded text-sm font-medium ${healthStatus.color}`}>
-          {healthStatus.text}
+    <Card className="h-full">
+      <div className="flex flex-col h-full">
+        <div className="flex items-center justify-between mb-4 pb-3 border-b border-border">
+          <div className="flex items-center">
+            <div className="w-10 h-10 bg-accent/10 rounded-full flex items-center justify-center mr-3">
+              <span className="text-accent font-bold">{cdp.asset.symbol}</span>
+            </div>
+            <div>
+              <h3 className="font-medium">{cdp.asset.name} CDP</h3>
+              <p className="text-xs text-muted-foreground">#{cdp.id.slice(0, 8)}</p>
+            </div>
+          </div>
+          <div className={`px-2 py-1 rounded text-xs font-medium ${getHealthColor()} bg-opacity-10`}>
+            {getHealthStatus()}
+          </div>
         </div>
-      </div>
-      
-      <div className="grid grid-cols-2 gap-x-6 gap-y-3 mb-6">
-        <div>
-          <div className="text-sm text-muted-foreground">Collateral:</div>
-          <div className="font-medium">
-            {formatNumber(cdp.collateralAmount)} {cdp.asset.symbol}
-            <span className="text-sm text-muted-foreground ml-1">
-              (~{formatUSD(collateralValue)})
+        
+        <div className="flex-1 space-y-3 mb-4">
+          <div className="flex justify-between text-sm">
+            <span className="text-muted-foreground">Collateral:</span>
+            <span className="font-medium">
+              {formatNumber(cdp.collateralAmount)} {cdp.asset.symbol} 
+              <span className="text-muted-foreground ml-1">
+                ({formatUSD(cdp.collateralAmount * cdp.asset.priceUSD)})
+              </span>
+            </span>
+          </div>
+          
+          <div className="flex justify-between text-sm">
+            <span className="text-muted-foreground">Debt:</span>
+            <span className="font-medium">
+              {formatNumber(cdp.debtAmount)} DAI
+            </span>
+          </div>
+          
+          <div className="flex justify-between text-sm">
+            <span className="text-muted-foreground">Collateral Ratio:</span>
+            <span className={`font-medium ${getHealthColor()}`}>
+              {formatPercent(cdp.collateralRatio * 100)}
+            </span>
+          </div>
+          
+          <div className="flex justify-between text-sm">
+            <span className="text-muted-foreground">Current Price:</span>
+            <span className="font-medium">
+              {formatUSD(cdp.asset.priceUSD)} / {cdp.asset.symbol}
+            </span>
+          </div>
+          
+          <div className="flex justify-between text-sm">
+            <span className="text-muted-foreground">Liquidation Price:</span>
+            <span className="font-medium">
+              {formatUSD((cdp.debtAmount * cdp.asset.liquidationRatio) / cdp.collateralAmount)}
+            </span>
+          </div>
+          
+          <div className="flex justify-between text-sm">
+            <span className="text-muted-foreground">Stability Fee:</span>
+            <span className="font-medium">
+              {formatPercent(cdp.asset.stabilityFee * 100)}
+            </span>
+          </div>
+          
+          <div className="flex justify-between text-sm">
+            <span className="text-muted-foreground">Created:</span>
+            <span className="font-medium">
+              {formatDate(typeof cdp.createdAt === 'number' ? cdp.createdAt : new Date(cdp.createdAt).getTime())}
             </span>
           </div>
         </div>
         
-        <div>
-          <div className="text-sm text-muted-foreground">Debt:</div>
-          <div className="font-medium">
-            {formatNumber(cdp.debtAmount)} DAI
-          </div>
-        </div>
-        
-        <div>
-          <div className="text-sm text-muted-foreground">Current Price:</div>
-          <div>
-            <AssetPriceDisplay assetId={cdp.asset.id} showTimestamp={false} />
-          </div>
-        </div>
-        
-        <div>
-          <div className="text-sm text-muted-foreground">Liquidation Price:</div>
-          <div className="font-medium">
-            {formatUSD(cdp.liquidationPrice)}
-          </div>
-        </div>
-        
-        <div>
-          <div className="text-sm text-muted-foreground">Collateral Ratio:</div>
-          <div className="font-medium">
-            {formatPercent(cdp.collateralRatio)}
-          </div>
-        </div>
-        
-        <div>
-          <div className="text-sm text-muted-foreground">Min. Ratio:</div>
-          <div className="font-medium">
-            {formatPercent(cdp.asset.liquidationRatio)}
-          </div>
-        </div>
-        
-        <div>
-          <div className="text-sm text-muted-foreground">Stability Fee:</div>
-          <div className="font-medium">
-            {formatPercent(cdp.asset.stabilityFee)}
-          </div>
-        </div>
-        
-        <div>
-          <div className="text-sm text-muted-foreground">Fee Accrued:</div>
-          <div className="font-medium">
-            {formatNumber(cdp.stabilityFeeAccrued)} DAI
-          </div>
-        </div>
+        <Button onClick={() => onManage(cdp)} fullWidth>
+          Manage CDP
+        </Button>
       </div>
-      
-      <div className="text-xs text-muted-foreground grid grid-cols-2 gap-4 mb-6">
-        <div>
-          <span>Created:</span>
-          <span className="ml-1">{formatDate(cdp.createdAt)}</span>
-        </div>
-        <div>
-          <span>Last Updated:</span>
-          <span className="ml-1">{formatDate(cdp.lastUpdatedAt)}</span>
-        </div>
-      </div>
-      
-      <Button onClick={() => onManage(cdp)} fullWidth>
-        Manage CDP
-      </Button>
     </Card>
   );
-};
-
-export default CDPDetailsCard;
+}
