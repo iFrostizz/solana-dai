@@ -3,21 +3,21 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import WalletContextProvider from '@/context/WalletContextProvider';
 import { headers } from 'next/headers';
-import SecurityProvider from '@/components/security/SecurityProvider';
-import SecurityGuard from '@/components/security/SecurityGuard';
+import SecurityProvider from '../components/security/SecurityProvider';
+import SecurityGuard from '../components/security/SecurityGuard';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
-export const metadata: Metadata = {
-  title: 'Solana DAI - Decentralized Stablecoin',
-  description: 'A decentralized stablecoin backed by Solana assets',
-  metadataBase: new URL('https://solana-dai.com'),
-};
-
-// Security headers
+// Security headers and metadata
 export async function generateMetadata(): Promise<Metadata> {
+  const baseMetadata: Metadata = {
+    title: 'Solana DAI - Decentralized Stablecoin',
+    description: 'A decentralized stablecoin backed by Solana assets',
+    metadataBase: new URL('https://solana-dai.com'),
+  };
+  
   return {
-    ...metadata,
+    ...baseMetadata,
     other: {
       'Content-Security-Policy': `
         default-src 'self';

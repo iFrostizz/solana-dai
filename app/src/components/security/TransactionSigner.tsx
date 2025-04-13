@@ -100,7 +100,8 @@ export default function TransactionSigner({
         signature = signedTransaction.signatures[0]?.toString() || '';
       } else if ('signature' in signedTransaction) {
         // For versioned transactions
-        signature = signedTransaction.signature?.toString() || '';
+        const versionedTx = signedTransaction as unknown as { signature: Uint8Array | null };
+        signature = versionedTx.signature?.toString() || '';
       }
       
       // Return the signature
