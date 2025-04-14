@@ -1,35 +1,56 @@
 import * as anchor from "@coral-xyz/anchor";
-import { Program } from "@coral-xyz/anchor";
+import { expect } from "chai";
+import { Program, web3,  } from "@coral-xyz/anchor";
 import { SolanaDai } from "../target/types/solana_dai";
 import { BN } from "bn.js";
-import { PythSolanaReceiver } from "@pythnetwork/pyth-solana-receiver";
 
 describe("solana-dai", () => {
   // Configure the client to use the local cluster.
-  anchor.setProvider(anchor.AnchorProvider.env());
-
+  const provider = anchor.AnchorProvider.env();
+  anchor.setProvider(provider);
+  const connection = provider.connection;
+  const signer = web3.Keypair.generate();
   const program = anchor.workspace.solanaDai as Program<SolanaDai>;
 
-  const connection = anchor.getProvider().connection;
-  const wallet = new anchor.Wallet(anchor.web3.Keypair.generate());
+  const [configPda] = web3.PublicKey.findProgramAddressSync(
+    [Buffer.from("CONFIG")],
+    program.programId
+  );
 
-  const pythSolanaReceiver = new PythSolanaReceiver({ connection, wallet });
+  const [authorityPda] = web3.PublicKey.findProgramAddressSync(
+    [Buffer.from("MINT_AUTHORITY")],
+    program.programId
+  );
 
-  // SOL/USD price feed on mainnet-beta
-  const SOL_USD_PRICE_FEED = "0xef0d8b6fda2ceba41da15d4095d1da392a0d2f8ed0c6c7bc0f4cfac8c280b56d";
+  const [mintPda] = web3.PublicKey.findProgramAddressSync(
+    [Buffer.from("MINT")],
+    program.programId
+  );
 
-  it("test price from Pyth", async () => {
-    const solUsdPriceFeedAccount = pythSolanaReceiver
-      .getPriceFeedAccountAddress(0, SOL_USD_PRICE_FEED)
-      .toBase58();
+  before(async () => {
+    const tx = await connection.requestAirdrop(signer.publicKey, 10 * web3.LAMPORTS_PER_SOL);
+    await connection.confirmTransaction({signature: tx, ...(await connection.getLatestBlockhash())});
+  })
 
-    console.log("Price Feed: ", solUsdPriceFeedAccount)
+  it("initializes config with correct data", async () => {
+    const liquidationThreshold = new BN(12_000); // example value, 120%
 
-    // Call the deposit function with the fetched price
-    const tx = await program.methods.deposit(new BN(1)).accounts({
-      priceUpdate: solUsdPriceFeedAccount
-    }).rpc();
+    await program.methods
+      .initialize(liquidationThreshold)
+      .accounts({
+        signer: signer.publicKey,
+        configPda,
+        authorityPda,
+        mintPda,
+        systemProgram: web3.SystemProgram.programId,
+      })
+      .signers([signer])
+      .rpc();
 
-    console.log("Your transaction signature: ", tx);
+    const configAccount = await program.account.config.fetch(configPda);
+    expect(configAccount.liquidationThreshold.toString()).to.equal(liquidationThreshold.toString());
+    
+    const mintAccount = await connection.getAccountInfo(mintPda);
   });
+
 });
