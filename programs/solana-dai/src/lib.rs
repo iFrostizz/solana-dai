@@ -1,58 +1,18 @@
 use anchor_lang::prelude::*;
+use pyth_solana_receiver_sdk::price_update::{get_feed_id_from_hex, Price, PriceUpdateV2};
 
 declare_id!("BnG9CbMoLRcpHvCsDiAuF36T8jMxXpWSGCWDn68gGxKz");
-
-#[program]
-pub mod dai {}
-
-#[program]
-pub mod oracle {
-    use super::*;
-
-    pub fn initialize(ctx: Context<Initialize>, initial_price: i64) -> Result<()> {
-        if ctx.accounts.initialized(ctx) {
-            panic!("already initialized");
-        }
-        ctx.accounts.price = initial_price;
-        ctx.accounts.initialized = true;
-        Ok(())
-    }
-
-    pub fn initialized(ctx: Context<Initialize>) -> bool {
-        ctx.accounts.initialized
-    }
-
-    pub fn latest_price(ctx: Context<Oracle>) -> i64 {
-        if !ctx.accounts.initialized(ctx) {
-            panic!("uninitialized price");
-        }
-        ctx.accounts.price
-    }
-
-    pub fn set_price(ctx: Context<Oracle>, price: i64) -> Result<()> {
-        todo!("access control!");
-        ctx.accounts.price = price;
-        Ok(())
-    }
-}
-
-#[derive(Accounts)]
-pub struct Initialize {
-    initialized: bool,
-    price: i64
-}
-
-#[derive(Accounts)]
-pub struct Oracle {
-    price: i64
-}
 
 #[program]
 pub mod solana_dai {
     use super::*;
 
     pub fn deposit(ctx: Context<Deposit>, amount: u64) -> Result<()> {
-        todo!()
+        let price_update = &mut ctx.accounts.price_update;
+
+        let price = get_latest_price(price_update).unwrap();
+
+        Ok(())
     }
 
     pub fn withdraw(ctx: Context<Withdraw>, amount: u64) -> Result<()> {
@@ -74,10 +34,36 @@ pub mod solana_dai {
     pub fn collateral_ratio(ctx: Context<CollateralRatio>, account: Pubkey) -> Result<()> {
         todo!()
     }
+
+}
+
+fn get_latest_price(price_update: &mut Account<'_, PriceUpdateV2>) -> Result<Price> {
+    // get_price_no_older_than will fail if the price update is more than 30 seconds old
+    let maximum_age: u64 = 30;
+
+    // get_price_no_older_than will fail if the price update is for a different price feed.
+    // This string is the id of the SOL/USD feed. See https://pyth.network/developers/price-feed-ids for all available IDs.
+    let feed_id: [u8; 32] = get_feed_id_from_hex(
+        "0xef0d8b6fda2ceba41da15d4095d1da392a0d2f8ed0c6c7bc0f4cfac8c280b56d",
+    )?;
+    let price = price_update.get_price_no_older_than(&Clock::get()?, maximum_age, &feed_id)?;
+
+    // Sample output:
+    // The price is (7160106530699 ± 5129162301) * 10^-8
+    msg!(
+        "The price is ({} ± {}) * 10^{}",
+        price.price,
+        price.conf,
+        price.exponent
+    );
+
+    Ok(price)
 }
 
 #[derive(Accounts)]
-pub struct Deposit {}
+pub struct Deposit<'info> {
+    pub price_update: Account<'info, PriceUpdateV2>,
+}
 
 #[derive(Accounts)]
 pub struct Withdraw {}
