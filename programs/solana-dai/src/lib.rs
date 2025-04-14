@@ -1,5 +1,5 @@
 use anchor_lang::prelude::*;
-use pyth_solana_receiver_sdk::price_update::{get_feed_id_from_hex, PriceUpdateV2};
+use pyth_solana_receiver_sdk::price_update::{get_feed_id_from_hex, Price, PriceUpdateV2};
 
 declare_id!("BnG9CbMoLRcpHvCsDiAuF36T8jMxXpWSGCWDn68gGxKz");
 
@@ -8,7 +8,11 @@ pub mod solana_dai {
     use super::*;
 
     pub fn deposit(ctx: Context<Deposit>, amount: u64) -> Result<()> {
-        todo!()
+        let price_update = &mut ctx.accounts.price_update;
+
+        let price = get_latest_price(price_update).unwrap();
+
+        Ok(())
     }
 
     pub fn withdraw(ctx: Context<Withdraw>, amount: u64) -> Result<()> {
@@ -33,7 +37,7 @@ pub mod solana_dai {
 
 }
 
-fn get_latest_price(price_update: &mut Account<'_, PriceUpdateV2>) -> Result<()> {
+fn get_latest_price(price_update: &mut Account<'_, PriceUpdateV2>) -> Result<Price> {
     // get_price_no_older_than will fail if the price update is more than 30 seconds old
     let maximum_age: u64 = 30;
 
@@ -53,7 +57,7 @@ fn get_latest_price(price_update: &mut Account<'_, PriceUpdateV2>) -> Result<()>
         price.exponent
     );
 
-    Ok(())
+    Ok(price)
 }
 
 #[derive(Accounts)]
