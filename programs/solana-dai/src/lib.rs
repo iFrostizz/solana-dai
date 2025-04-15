@@ -17,6 +17,7 @@ pub const SYSTEM_STATE_SEED: &[u8] = todo!();
 pub const VAULT_AUTHORITY_SEED: &[u8] = todo!();
 pub const USER_VAULT_SEED: &[u8] = todo!();
 
+#[error_code]
 enum ErrorCode {
     VaultNotInitialized,
     BelowCollateralRatio
@@ -47,7 +48,7 @@ pub mod solana_dai {
             vault.collateral = 0;
             vault.debt = 0;
             vault.initialized = true;
-            vault.bump = *ctx.bumps.get(std::str::from_utf8(USER_VAULT_SEED)).unwrap();
+            vault.bump = ctx.bumps.vault;
         }
 
         // Transfer SOL from user to vault authority
@@ -109,7 +110,7 @@ pub mod solana_dai {
         // Mint DAI tokens to the user via the system state
         let system_state = &ctx.accounts.system_state;
         let seeds = &[
-            std::str::from_utf8(SYSTEM_STATE_SEED).as_ref(),
+            SYSTEM_STATE_SEED,
             &[system_state.bump],
         ];
         let signer = &[&seeds[..]];
@@ -201,39 +202,46 @@ fn calculate_usd_value(amount: u64, price: Price) -> u64 {
     }
 }
 
-#[derive(Accounts)]
+#[account]
 pub struct SystemState {
     admin: Pubkey,
     dai_mint: Pubkey,
     total_debt: u64,
     total_collateral: u64,
-    bump: u64,
-    vault_authority_bump: Pubkey,
+    bump: u8,
+    vault_authority_bump: u64,
 }
 
-#[derive(Accounts)]
+#[account]
 pub struct Vault {
     initialized: bool,
     collateral: u64,
     debt: u64,
     owner: Pubkey,
-    bump: u64,
+    bump: u8,
 }
 
 #[derive(Accounts)]
-pub struct Initialize {
-    system_state: SystemState,
-    admin: Pubkey,
-    dai_mint: Pubkey,
+pub struct Initialize<'info> {
+    system_state: Account<'info, SystemState>,
+    admin: Account<'info, Empty>,
+    dai_mint: Account<'info, Empty>,
 }
 
 #[derive(Accounts)]
-pub struct Deposit {
-    vault: Vault,
-    owner: Pubkey,
-    system_program: Pubkey,
-    vault_authority: Pubkey,
-    system_state: SystemState
+pub struct Deposit<'info> {
+    #[account(
+        init,
+        seeds = [b"vault", owner.key().as_ref()],
+        payer = owner,
+        space = 8 + std::mem::size_of::<Vault>(),
+        bump,
+    )]
+    vault: Box<Account<'info, Vault>>,
+    owner: Account<'info, Empty>,
+    system_program: Account<'info, Empty>,
+    vault_authority: Account<'info, Empty>,
+    system_state: Account<'info, SystemState>
 }
 
 #[derive(Accounts)]
@@ -242,11 +250,11 @@ pub struct Withdraw {}
 #[derive(Accounts)]
 pub struct Mint<'info> {
     price_update: Account<'info, PriceUpdateV2>,
-    vault: Vault,
-    system_state: SystemState,
-    token_program: Pubkey,
-    dai_mint: Pubkey,
-    user_dai_account: Pubkey
+    vault: Account<'info, Vault>,
+    system_state: Account<'info, SystemState>,
+    token_program: Account<'info, Empty>,
+    dai_mint: Account<'info, Empty>,
+    user_dai_account: Account<'info, Empty>
 }
 
 #[derive(Accounts)]
@@ -257,3 +265,6 @@ pub struct Liquidate {}
 
 #[derive(Accounts)]
 pub struct CollateralRatio {}
+
+#[account]
+pub struct Empty {}
