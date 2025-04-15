@@ -1,5 +1,6 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token::{Mint, Token, TokenAccount};
+use anchor_spl::token_interface::{Mint as MintToken, TokenAccount, TokenInterface};
+use pyth_solana_receiver_sdk::price_update::PriceUpdateV2;
 use crate::DECIMALS;
 
 // Seed constants for PDAs
@@ -26,6 +27,9 @@ pub struct Vault {
     pub bump: u8,
 }
 
+#[account]
+pub struct VaultAuthorityOwner {}
+
 #[derive(Accounts)]
 pub struct Initialize<'info> {
     #[account(mut)]
@@ -46,22 +50,21 @@ pub struct Initialize<'info> {
     pub system_state: Account<'info, SystemState>,
 
     #[account(
-        init,
-        payer = admin,
+        mut,
         mint::decimals = DECIMALS,
         mint::authority = system_state,
     )]
-    pub dai_mint: Account<'info, Mint>,
+    pub dai_mint: InterfaceAccount<'info, MintToken>,
 
     /// This is a PDA that will hold the SOL collateral so can be UncheckedAccount
     #[account(
+        mut,
         seeds = [VAULT_AUTHORITY_SEED],
         bump,
     )]
-    pub vault_authority: UncheckedAccount<'info>,
+    pub vault_authority: Account<'info, VaultAuthorityOwner>,
 
     pub system_program: Program<'info, System>,
-    pub token_program: Program<'info, Token>,
     pub rent: Sysvar<'info, Rent>,
 }
 
@@ -98,7 +101,7 @@ pub struct Deposit<'info> {
         seeds = [VAULT_AUTHORITY_SEED],
         bump = system_state.vault_authority_bump,
     )]
-    pub vault_authority: UncheckedAccount<'info>,
+    pub vault_authority: Account<'info, VaultAuthorityOwner>,
 
     pub system_program: Program<'info, System>,
     pub rent: Sysvar<'info, Rent>,
@@ -128,17 +131,17 @@ pub struct Mint<'info> {
         mut,
         address = system_state.dai_mint,
     )]
-    pub dai_mint: Account<'info, Mint>,
+    pub dai_mint: InterfaceAccount<'info, MintToken>,
 
     #[account(
         mut,
         constraint = user_dai_account.mint == dai_mint.key(),
         constraint = user_dai_account.owner == owner.key(),
     )]
-    pub user_dai_account: Account<'info, TokenAccount>,
+    pub user_dai_account: InterfaceAccount<'info, TokenAccount>,
 
     pub price_update: Account<'info, PriceUpdateV2>,
-    pub token_program: Program<'info, Token>,
+    pub token_program: Interface<'info, TokenInterface>,
 }
 
 #[derive(Accounts)]

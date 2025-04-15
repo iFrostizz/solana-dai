@@ -1,8 +1,8 @@
-mod accounts;
-pub use accounts::*;
+mod accounts_def;
+pub use accounts_def::*;
 
 use anchor_lang::prelude::*;
-use anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer};
+use anchor_spl::token;
 use pyth_solana_receiver_sdk::price_update::{get_feed_id_from_hex, Price, PriceUpdateV2};
 
 declare_id!("BnG9CbMoLRcpHvCsDiAuF36T8jMxXpWSGCWDn68gGxKz");
@@ -14,6 +14,12 @@ pub const LIQUIDATION_PENALTY: u64 = 0;
 pub const SOLANA_FEED_ID: &str = "0xef0d8b6fda2ceba41da15d4095d1da392a0d2f8ed0c6c7bc0f4cfac8c280b56d";
 pub const LAMPORTS_PER_SOL: u64 = 1_000_000_000;
 
+#[error_code]
+enum ErrorCode {
+    VaultNotInitialized,
+    BelowCollateralRatio
+}
+
 #[program]
 pub mod solana_dai {
     use super::*;
@@ -24,8 +30,8 @@ pub mod solana_dai {
         system_state.dai_mint = ctx.accounts.dai_mint.key();
         system_state.total_debt = 0;
         system_state.total_collateral = 0;
-        system_state.bump = *ctx.bumps.get(std::str::from_utf8(SYSTEM_STATE_SEED)).unwrap();
-        system_state.vault_authority_bump = *ctx.bumps.get(std::str::from_utf8(VAULT_AUTHORITY_SEED)).unwrap();
+        system_state.bump = ctx.bumps.system_state;
+        system_state.vault_authority_bump = ctx.bumps.vault_authority;
 
         msg!("Initialized Solana DAI system");
         Ok(())
@@ -39,7 +45,7 @@ pub mod solana_dai {
             vault.collateral = 0;
             vault.debt = 0;
             vault.initialized = true;
-            vault.bump = *ctx.bumps.get(std::str::from_utf8(USER_VAULT_SEED)).unwrap();
+            vault.bump = ctx.bumps.vault;
         }
 
         // Transfer SOL from user to vault authority
@@ -70,7 +76,7 @@ pub mod solana_dai {
         Ok(())
     }
 
-    pub fn withdraw(ctx: Context<Withdraw>, amount: u64) -> Result<()> {
+    pub fn withdraw(_ctx: Context<Withdraw>, _amount: u64) -> Result<()> {
         todo!()
     }
 
@@ -101,7 +107,7 @@ pub mod solana_dai {
         // Mint DAI tokens to the user via the system state
         let system_state = &ctx.accounts.system_state;
         let seeds = &[
-            std::str::from_utf8(SYSTEM_STATE_SEED).as_ref(),
+            SYSTEM_STATE_SEED,
             &[system_state.bump],
         ];
         let signer = &[&seeds[..]];
@@ -130,15 +136,15 @@ pub mod solana_dai {
         Ok(())
     }
 
-    pub fn burn(ctx: Context<Burn>, amount: u64) -> Result<()> {
+    pub fn burn(_ctx: Context<Burn>, _amount: u64) -> Result<()> {
         todo!()
     }
 
-    pub fn liquidate(ctx: Context<Liquidate>, amount: u64) -> Result<()> {
+    pub fn liquidate(_ctx: Context<Liquidate>, _amount: u64) -> Result<()> {
         todo!()
     }
 
-    pub fn collateral_ratio(ctx: Context<CollateralRatio>, account: Pubkey) -> Result<()> {
+    pub fn collateral_ratio(_ctx: Context<CollateralRatio>, _account: Pubkey) -> Result<()> {
         todo!()
     }
 
@@ -150,7 +156,9 @@ fn get_latest_price(price_update: &mut Account<'_, PriceUpdateV2>) -> Result<Pri
 
     // get_price_no_older_than will fail if the price update is for a different price feed.
     // This string is the id of the SOL/USD feed. See https://pyth.network/developers/price-feed-ids for all available IDs.
-    let feed_id: [u8; 32] = get_feed_id_from_hex(SOLANA_FEED_ID)?;
+    let feed_id: [u8; 32] = get_feed_id_from_hex(
+        "0xef0d8b6fda2ceba41da15d4095d1da392a0d2f8ed0c6c7bc0f4cfac8c280b56d",
+    )?;
     let price = price_update.get_price_no_older_than(&Clock::get()?, maximum_age, &feed_id)?;
 
     // Sample output:
@@ -167,10 +175,11 @@ fn get_latest_price(price_update: &mut Account<'_, PriceUpdateV2>) -> Result<Pri
 
 fn calculate_usd_value(amount: u64, price: Price) -> u64 {
     let exponent = price.exponent.abs() as u32;
+    let price_val = price.price.max(0) as u64;
     let price_scaled = if price.exponent < 0 {
-        price.price
+        price_val
     } else {
-        price.price.checked_mul(10_u64.pow(exponent)).unwrap()
+        price_val.checked_mul(10_u64.pow(exponent)).unwrap()
     };
 
     if price.exponent < 0 {
