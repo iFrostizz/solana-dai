@@ -28,7 +28,10 @@ pub struct Vault {
 }
 
 #[account]
-pub struct VaultAuthorityOwner {}
+pub struct VaultAuthority {}
+
+#[account]
+pub struct Owner {}
 
 #[derive(Accounts)]
 pub struct Initialize<'info> {
@@ -62,7 +65,7 @@ pub struct Initialize<'info> {
         seeds = [VAULT_AUTHORITY_SEED],
         bump,
     )]
-    pub vault_authority: Account<'info, VaultAuthorityOwner>,
+    pub vault_authority: Account<'info, VaultAuthority>,
 
     pub system_program: Program<'info, System>,
     pub rent: Sysvar<'info, Rent>,
@@ -101,7 +104,7 @@ pub struct Deposit<'info> {
         seeds = [VAULT_AUTHORITY_SEED],
         bump = system_state.vault_authority_bump,
     )]
-    pub vault_authority: Account<'info, VaultAuthorityOwner>,
+    pub vault_authority: Account<'info, VaultAuthority>,
 
     pub system_program: Program<'info, System>,
     pub rent: Sysvar<'info, Rent>,
@@ -145,13 +148,81 @@ pub struct Mint<'info> {
 }
 
 #[derive(Accounts)]
-pub struct Withdraw {}
+pub struct Withdraw<'info> {
+    #[account(mut)]
+    pub owner: Signer<'info>,
+
+    pub price_update: Account<'info, PriceUpdateV2>,
+
+    #[account(
+        mut,
+        seeds = [USER_VAULT_SEED, owner.key().as_ref()],
+        bump = vault.bump,
+        constraint = vault.owner == owner.key(),
+    )]
+    pub vault: Account<'info, Vault>,
+
+    #[account(
+        mut,
+        seeds = [VAULT_AUTHORITY_SEED],
+        bump,
+    )]
+    pub vault_authority: Account<'info, VaultAuthority>,
+
+    pub system_program: Program<'info, System>,
+}
 
 #[derive(Accounts)]
-pub struct Burn {}
+pub struct Burn<'info> {
+    #[account(mut)]
+    pub owner: Signer<'info>,
+
+    pub price_update: Account<'info, PriceUpdateV2>,
+
+    #[account(
+        mut,
+        seeds = [USER_VAULT_SEED, owner.key().as_ref()],
+        bump = vault.bump,
+        constraint = vault.owner == owner.key(),
+    )]
+    pub vault: Account<'info, Vault>,
+
+    #[account(
+        mut,
+        seeds = [VAULT_AUTHORITY_SEED],
+        bump,
+    )]
+    pub vault_authority: Account<'info, VaultAuthority>,
+
+    pub system_program: Program<'info, System>,
+    pub token_program: Interface<'info, TokenInterface>,
+}
 
 #[derive(Accounts)]
-pub struct Liquidate {}
+pub struct Liquidate<'info> {
+    pub liquidator: Signer<'info>,
+
+    pub owner: Account<'info, Owner>,
+
+    pub price_update: Account<'info, PriceUpdateV2>,
+
+    #[account(
+        mut,
+        seeds = [USER_VAULT_SEED, owner.key().as_ref()],
+        bump = vault.bump,
+        constraint = vault.owner == owner.key(),
+    )]
+    pub vault: Account<'info, Vault>,
+
+    #[account(
+        mut,
+        seeds = [VAULT_AUTHORITY_SEED],
+        bump,
+    )]
+    pub vault_authority: Account<'info, VaultAuthority>,
+
+    pub system_program: Program<'info, System>,
+}
 
 #[derive(Accounts)]
 pub struct CollateralRatio {}
