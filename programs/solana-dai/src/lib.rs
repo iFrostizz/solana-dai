@@ -1,8 +1,8 @@
-mod accounts;
-pub use accounts::*;
+mod accounts_def;
+pub use accounts_def::*;
 
 use anchor_lang::prelude::*;
-use anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer};
+use anchor_spl::token::{self, Token, TokenAccount, Transfer};
 use pyth_solana_receiver_sdk::price_update::{get_feed_id_from_hex, Price, PriceUpdateV2};
 
 declare_id!("BnG9CbMoLRcpHvCsDiAuF36T8jMxXpWSGCWDn68gGxKz");
@@ -13,9 +13,6 @@ pub const MIN_COLATERAL_RATIO: u64 = 200;
 pub const LIQUIDATION_PENALTY: u64 = 0;
 pub const SOLANA_FEED_ID: &str = "0xef0d8b6fda2ceba41da15d4095d1da392a0d2f8ed0c6c7bc0f4cfac8c280b56d";
 pub const LAMPORTS_PER_SOL: u64 = 1_000_000_000;
-pub const SYSTEM_STATE_SEED: &[u8] = todo!();
-pub const VAULT_AUTHORITY_SEED: &[u8] = todo!();
-pub const USER_VAULT_SEED: &[u8] = todo!();
 
 #[error_code]
 enum ErrorCode {
@@ -33,8 +30,8 @@ pub mod solana_dai {
         system_state.dai_mint = ctx.accounts.dai_mint.key();
         system_state.total_debt = 0;
         system_state.total_collateral = 0;
-        system_state.bump = *ctx.bumps.get(std::str::from_utf8(SYSTEM_STATE_SEED)).unwrap();
-        system_state.vault_authority_bump = *ctx.bumps.get(std::str::from_utf8(VAULT_AUTHORITY_SEED)).unwrap();
+        system_state.bump = ctx.bumps.system_state;
+        system_state.vault_authority_bump = ctx.bumps.vault_authority;
 
         msg!("Initialized Solana DAI system");
         Ok(())
@@ -220,51 +217,3 @@ pub struct Vault {
     owner: Pubkey,
     bump: u8,
 }
-
-#[derive(Accounts)]
-pub struct Initialize<'info> {
-    system_state: Account<'info, SystemState>,
-    admin: Account<'info, Empty>,
-    dai_mint: Account<'info, Empty>,
-}
-
-#[derive(Accounts)]
-pub struct Deposit<'info> {
-    #[account(
-        init,
-        seeds = [b"vault", owner.key().as_ref()],
-        payer = owner,
-        space = 8 + std::mem::size_of::<Vault>(),
-        bump,
-    )]
-    vault: Box<Account<'info, Vault>>,
-    owner: Account<'info, Empty>,
-    system_program: Account<'info, Empty>,
-    vault_authority: Account<'info, Empty>,
-    system_state: Account<'info, SystemState>
-}
-
-#[derive(Accounts)]
-pub struct Withdraw {}
-
-#[derive(Accounts)]
-pub struct Mint<'info> {
-    price_update: Account<'info, PriceUpdateV2>,
-    vault: Account<'info, Vault>,
-    system_state: Account<'info, SystemState>,
-    token_program: Account<'info, Empty>,
-    dai_mint: Account<'info, Empty>,
-    user_dai_account: Account<'info, Empty>
-}
-
-#[derive(Accounts)]
-pub struct Burn {}
-
-#[derive(Accounts)]
-pub struct Liquidate {}
-
-#[derive(Accounts)]
-pub struct CollateralRatio {}
-
-#[account]
-pub struct Empty {}
