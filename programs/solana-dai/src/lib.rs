@@ -2,7 +2,7 @@ mod accounts_def;
 pub use accounts_def::*;
 
 use anchor_lang::prelude::*;
-use anchor_spl::token::{self, Token, TokenAccount, Transfer};
+use anchor_spl::token;
 use pyth_solana_receiver_sdk::price_update::{get_feed_id_from_hex, Price, PriceUpdateV2};
 
 declare_id!("BnG9CbMoLRcpHvCsDiAuF36T8jMxXpWSGCWDn68gGxKz");
@@ -76,7 +76,7 @@ pub mod solana_dai {
         Ok(())
     }
 
-    pub fn withdraw(ctx: Context<Withdraw>, amount: u64) -> Result<()> {
+    pub fn withdraw(_ctx: Context<Withdraw>, _amount: u64) -> Result<()> {
         todo!()
     }
 
@@ -136,15 +136,15 @@ pub mod solana_dai {
         Ok(())
     }
 
-    pub fn burn(ctx: Context<Burn>, amount: u64) -> Result<()> {
+    pub fn burn(_ctx: Context<Burn>, _amount: u64) -> Result<()> {
         todo!()
     }
 
-    pub fn liquidate(ctx: Context<Liquidate>, amount: u64) -> Result<()> {
+    pub fn liquidate(_ctx: Context<Liquidate>, _amount: u64) -> Result<()> {
         todo!()
     }
 
-    pub fn collateral_ratio(ctx: Context<CollateralRatio>, account: Pubkey) -> Result<()> {
+    pub fn collateral_ratio(_ctx: Context<CollateralRatio>, _account: Pubkey) -> Result<()> {
         todo!()
     }
 
