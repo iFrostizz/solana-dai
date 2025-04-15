@@ -145,7 +145,34 @@ pub struct Mint<'info> {
 }
 
 #[derive(Accounts)]
-pub struct Withdraw {}
+pub struct Withdraw<'info> {
+    #[account(mut)]
+    pub owner: Signer<'info>,
+    
+    #[account(
+        mut,
+        seeds = [SYSTEM_STATE_SEED],
+        bump = system_state.bump,
+    )]
+    pub system_state: Account<'info, SystemState>,
+    
+    #[account(
+        mut,
+        seeds = [USER_VAULT_SEED, owner.key().as_ref()],
+        bump = vault.bump,
+        constraint = vault.owner == owner.key(),
+    )]
+    pub vault: Account<'info, Vault>,
+    
+    #[account(
+        mut,
+        seeds = [VAULT_AUTHORITY_SEED],
+        bump = system_state.vault_authority_bump,
+    )]
+    pub vault_authority: Account<'info, VaultAuthorityOwner>,
+    
+    pub system_program: Program<'info, System>,
+}
 
 #[derive(Accounts)]
 pub struct Burn {}

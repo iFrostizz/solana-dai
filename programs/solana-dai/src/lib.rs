@@ -16,8 +16,14 @@ pub const LAMPORTS_PER_SOL: u64 = 1_000_000_000;
 
 #[error_code]
 enum ErrorCode {
+    #[msg("Vault not initialized")]
     VaultNotInitialized,
-    BelowCollateralRatio
+    #[msg("Below minimum collateral ratio")]
+    BelowCollateralRatio,
+    #[msg("Insufficient collateral")]
+    InsufficientCollateral,
+    #[msg("User has outstanding debt")]
+    HasOutstandingDebt,
 }
 
 #[program]
@@ -76,8 +82,48 @@ pub mod solana_dai {
         Ok(())
     }
 
-    pub fn withdraw(_ctx: Context<Withdraw>, _amount: u64) -> Result<()> {
-        todo!()
+    pub fn withdraw(ctx: Context<Withdraw>, amount: u64) -> Result<()> {
+        // Users can only withdraw if all their debts are paid!
+        // Check if vault exists and has enough collateral
+        let vault = &mut ctx.accounts.vault;
+        require!(vault.initialized, ErrorCode::VaultNotInitialized);
+        require!(vault.collateral >= amount, ErrorCode::InsufficientCollateral);
+
+        // Check if the user has any debt
+        require!(vault.debt == 0, ErrorCode::HasOutstandingDebt);
+
+        // Transfer SOL from vault authority to user
+        let vault_authority_info = &ctx.accounts.vault_authority;
+        let owner_info = &ctx.accounts.owner;
+
+        // Create the transfer instruction with PDA as signer
+        let seeds = &[
+            VAULT_AUTHORITY_SEED,
+            &[ctx.accounts.system_state.vault_authority_bump],
+        ];
+        let signer = &[&seeds[..]];
+
+        anchor_lang::system_program::transfer(
+            CpiContext::new_with_signer(
+                ctx.accounts.system_program.to_account_info(),
+                anchor_lang::system_program::Transfer {
+                    from: vault_authority_info.to_account_info(),
+                    to: owner_info.to_account_info(),
+                },
+                signer,
+            ),
+            amount,
+        )?;
+
+        // Update vault state
+        vault.collateral = vault.collateral.checked_sub(amount).unwrap();
+
+        // Update system state
+        let system_state = &mut ctx.accounts.system_state;
+        system_state.total_collateral = system_state.total_collateral.checked_sub(amount).unwrap();
+        
+        msg!("Withdrew {} lamports of SOL", amount);
+        Ok(())
     }
 
     pub fn mint(ctx: Context<Mint>, amount: u64) -> Result<()> {
