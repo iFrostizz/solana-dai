@@ -198,22 +198,3 @@ fn calculate_usd_value(amount: u64, price: Price) -> u64 {
             .unwrap()
     }
 }
-
-#[account]
-pub struct SystemState {
-    admin: Pubkey,
-    dai_mint: Pubkey,
-    total_debt: u64,
-    total_collateral: u64,
-    bump: u8,
-    vault_authority_bump: u64,
-}
-
-#[account]
-pub struct Vault {
-    initialized: bool,
-    collateral: u64,
-    debt: u64,
-    owner: Pubkey,
-    bump: u8,
-}
