@@ -16,11 +16,18 @@ pub const LAMPORTS_PER_SOL: u64 = 1_000_000_000;
 
 #[error_code]
 enum ErrorCode {
+    #[msg("Vault not initialized")]
     VaultNotInitialized,
+    #[msg("Below minimum collateral ratio")]
     BelowCollateralRatio,
+    #[msg("Over minimum collateral ratio")]
     OverCollateralRatio,
-    NotEnoughCollateral,
-    NotEnoughDebt
+    #[msg("Insufficient collateral")]
+    InsufficientCollateral,
+    #[msg("Insufficient debt")]
+    InsufficientDebt,
+    #[msg("User has outstanding debt")]
+    HasOutstandingDebt,
 }
 
 #[program]
@@ -80,46 +87,46 @@ pub mod solana_dai {
     }
 
     pub fn withdraw(ctx: Context<Withdraw>, amount: u64) -> Result<()> {
-        // Get the latest SOL price from Pyth
-        let price_update = &mut ctx.accounts.price_update;
-        let price = get_latest_price(price_update)?;
-
-        // Check if vault exists and is initialized
+        // Users can only withdraw if all their debts are paid!
+        // Check if vault exists and has enough collateral
         let vault = &mut ctx.accounts.vault;
         require!(vault.initialized, ErrorCode::VaultNotInitialized);
+        require!(vault.collateral >= amount, ErrorCode::InsufficientCollateral);
 
-        require!(vault.collateral >= amount, ErrorCode::NotEnoughCollateral);
+        // Check if the user has any debt
+        require!(vault.debt == 0, ErrorCode::HasOutstandingDebt);
 
-        let new_collateral = vault.collateral - amount; // checked above
-        let collateral_value = calculate_usd_value(new_collateral, price);
-
-        let min_collateral_required = vault.debt
-            .checked_mul(MIN_COLATERAL_RATIO)
-            .unwrap()
-            .checked_div(100)
-            .unwrap();
-
-        require!(collateral_value >= min_collateral_required, ErrorCode::BelowCollateralRatio);
-
-        vault.collateral = new_collateral;
-
-        // Transfer SOL from user to vault authority
-        let system_program = &ctx.accounts.system_program;
-        let owner_info = &ctx.accounts.owner;
+        // Transfer SOL from vault authority to user
         let vault_authority_info = &ctx.accounts.vault_authority;
+        let owner_info = &ctx.accounts.owner;
 
-        // Create the transfer instruction using cross-program invocation
+        // Create the transfer instruction with PDA as signer
+        let seeds = &[
+            VAULT_AUTHORITY_SEED,
+            &[ctx.accounts.system_state.vault_authority_bump],
+        ];
+        let signer = &[&seeds[..]];
+
         anchor_lang::system_program::transfer(
-            CpiContext::new(
-                system_program.to_account_info(),
+            CpiContext::new_with_signer(
+                ctx.accounts.system_program.to_account_info(),
                 anchor_lang::system_program::Transfer {
-                    from: owner_info.to_account_info(),
-                    to: vault_authority_info.to_account_info(),
+                    from: vault_authority_info.to_account_info(),
+                    to: owner_info.to_account_info(),
                 },
+                signer,
             ),
             amount,
         )?;
 
+        // Update vault state
+        vault.collateral = vault.collateral.checked_sub(amount).unwrap();
+
+        // Update system state
+        let system_state = &mut ctx.accounts.system_state;
+        system_state.total_collateral = system_state.total_collateral.checked_sub(amount).unwrap();
+
+        msg!("Withdrew {} lamports of SOL", amount);
         Ok(())
     }
 
@@ -188,7 +195,7 @@ pub mod solana_dai {
         let vault = &mut ctx.accounts.vault;
         require!(vault.initialized, ErrorCode::VaultNotInitialized);
 
-        require!(vault.debt >= amount, ErrorCode::NotEnoughDebt);
+        require!(vault.debt >= amount, ErrorCode::InsufficientDebt);
 
         let new_debt = vault.debt - amount; // checked above
         let collateral_value = calculate_usd_value(vault.collateral, price);

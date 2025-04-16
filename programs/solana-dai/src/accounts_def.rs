@@ -71,7 +71,6 @@ pub struct Initialize<'info> {
     pub rent: Sysvar<'info, Rent>,
 }
 
-
 #[derive(Accounts)]
 pub struct Deposit<'info> {
     #[account(mut)]
@@ -152,7 +151,12 @@ pub struct Withdraw<'info> {
     #[account(mut)]
     pub owner: Signer<'info>,
 
-    pub price_update: Account<'info, PriceUpdateV2>,
+    #[account(
+        mut,
+        seeds = [SYSTEM_STATE_SEED],
+        bump = system_state.bump,
+    )]
+    pub system_state: Account<'info, SystemState>,
 
     #[account(
         mut,
@@ -165,7 +169,7 @@ pub struct Withdraw<'info> {
     #[account(
         mut,
         seeds = [VAULT_AUTHORITY_SEED],
-        bump,
+        bump = system_state.vault_authority_bump,
     )]
     pub vault_authority: Account<'info, VaultAuthority>,
 
