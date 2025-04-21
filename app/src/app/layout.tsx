@@ -54,7 +54,7 @@ export default function RootLayout({
         <meta name="theme-color" content="#000000" />
         <meta name="description" content="A decentralized stablecoin backed by Solana assets" />
         <meta name="referrer" content="strict-origin-when-cross-origin" />
-        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
       </head>
       <body className={`${inter.variable} font-sans min-h-screen`}>
         <WalletContextProvider>

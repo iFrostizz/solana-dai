@@ -6,10 +6,10 @@
     "skipLibCheck": true,
     "strict": true,
     "noEmit": true,
-    "esModuleInterop": true,
+    "esModuleInterop": true, // Enable compatibility with commonjs modules
     "module": "esnext",
     "moduleResolution": "bundler",
-    "resolveJsonModule": true,
+    "resolveJsonModule": true, // Allow importing JSON files
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,

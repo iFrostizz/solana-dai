@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token_interface::{Mint as MintToken, TokenAccount, TokenInterface};
-use pyth_solana_receiver_sdk::price_update::PriceUpdateV2;
-use crate::DECIMALS;
+use anchor_spl::token_interface::{Mint as SplMint, TokenAccount};
+use anchor_spl::token::Token;
+use crate::{DECIMALS};
 
 // Seed constants for PDAs
 pub const SYSTEM_STATE_SEED: &[u8] = b"solana_dai_system_state";
@@ -54,7 +54,7 @@ pub struct Initialize<'info> {
         mint::decimals = DECIMALS,
         mint::authority = system_state,
     )]
-    pub dai_mint: InterfaceAccount<'info, MintToken>,
+    pub dai_mint: InterfaceAccount<'info, SplMint>,
 
     /// This is a PDA that will hold the SOL collateral so can be UncheckedAccount
     #[account(
@@ -111,37 +111,28 @@ pub struct Deposit<'info> {
 pub struct Mint<'info> {
     #[account(mut)]
     pub owner: Signer<'info>,
-
-    #[account(
-        mut,
-        seeds = [SYSTEM_STATE_SEED],
-        bump = system_state.bump,
-    )]
+    #[account(mut, seeds = [SYSTEM_STATE_SEED], bump = system_state.bump)]
     pub system_state: Account<'info, SystemState>,
-
-    #[account(
-        mut,
-        seeds = [USER_VAULT_SEED, owner.key().as_ref()],
-        bump = vault.bump,
-        constraint = vault.owner == owner.key(),
-    )]
+    #[account(mut, seeds = [USER_VAULT_SEED, owner.key().as_ref()], bump = vault.bump, has_one = owner)]
     pub vault: Account<'info, Vault>,
-
+    #[account(mut, address = system_state.dai_mint)]
+    pub dai_mint: InterfaceAccount<'info, SplMint>,
     #[account(
-        mut,
-        address = system_state.dai_mint,
-    )]
-    pub dai_mint: InterfaceAccount<'info, MintToken>,
-
-    #[account(
-        mut,
-        constraint = user_dai_account.mint == dai_mint.key(),
-        constraint = user_dai_account.owner == owner.key(),
+        init_if_needed,
+        payer = owner,
+        associated_token::mint = dai_mint,
+        associated_token::authority = owner
     )]
     pub user_dai_account: InterfaceAccount<'info, TokenAccount>,
-
-    pub price_update: Account<'info, PriceUpdateV2>,
-    pub token_program: Interface<'info, TokenInterface>,
+    #[account(seeds = [VAULT_AUTHORITY_SEED], bump = system_state.vault_authority_bump)]
+    /// CHECK: Vault Authority PDA. Required as signer for mint_to.
+    pub vault_authority: AccountInfo<'info>,
+    /// CHECK: Pyth Price Feed Account. Deserialized and checked in instruction logic.
+    pub price_update: AccountInfo<'info>,
+    pub token_program: Program<'info, Token>,
+    pub system_program: Program<'info, System>,
+    pub rent: Sysvar<'info, Rent>,
+    pub associated_token_program: Program<'info, anchor_spl::associated_token::AssociatedToken>,
 }
 
 #[derive(Accounts)]

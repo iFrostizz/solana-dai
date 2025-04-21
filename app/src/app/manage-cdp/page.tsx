@@ -1,243 +1,298 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useConnection, useWallet, useAnchorWallet } from '@solana/wallet-adapter-react';
+import { Transaction, LAMPORTS_PER_SOL, PublicKey, TransactionInstruction, VersionedTransaction } from '@solana/web3.js';
+import { BN, Program, Wallet } from '@coral-xyz/anchor';
 import Header from '@/components/Header';
-import { useCDPManagement } from '@/services/cdp-management.service';
-import CDPPortfolioOverview from '@/components/cdp/CDPPortfolioOverview';
-import CDPDetailsCard from '@/components/cdp/CDPDetailsCard';
-import CDPActionCard from '@/components/cdp/CDPActionCard';
-import { CDPAction, CDPWithAsset } from '@/utils/cdpTypes';
-import { useWallet } from '@solana/wallet-adapter-react';
 import Button from '@/components/ui/Button';
-import Image from 'next/image';
+import Input from '@/components/ui/Input'; 
+import { 
+  getProgram, 
+  createDepositInstruction, 
+  createMintInstruction, 
+  getCollateralRatio, 
+  PYTH_SOL_USD_PRICE_ACCOUNT, 
+  findSystemStatePDA 
+} from '@/utils/solanaDaiInteractions';
+import { SolanaDai } from '@/idl/solana_dai'; 
+
+const DAI_DECIMALS = 6; 
+const DAI_FACTOR = new BN(10).pow(new BN(DAI_DECIMALS));
 
 export default function ManageCDP() {
-  const { connected } = useWallet();
-  const { cdps, cdpStats, isLoading, error, executeCDPAction } = useCDPManagement();
-  const [selectedCDP, setSelectedCDP] = useState<CDPWithAsset | null>(null);
-  const [activeActionTab, setActiveActionTab] = useState<CDPAction | null>(null);
-  const [isActionExecuting, setIsActionExecuting] = useState(false);
+  const { connected, publicKey } = useWallet(); 
+  const { connection } = useConnection();
+  const anchorWallet = useAnchorWallet(); 
+  
+  const [depositAmount, setDepositAmount] = useState('');
+  const [mintAmount, setMintAmount] = useState('');
+  const [collateralRatio, setCollateralRatio] = useState<number | null>(null);
+  const [isProcessingTx, setIsProcessingTx] = useState(false);
+  const [statusMessage, setStatusMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
+  const [isFetchingRatio, setIsFetchingRatio] = useState(false);
+  const [daiMintAddress, setDaiMintAddress] = useState<PublicKey | null>(null); 
+  const [isFetchingSystemState, setIsFetchingSystemState] = useState(false);
+  const [isMounted, setIsMounted] = useState(false); 
 
-  // Handle selecting a CDP to manage
-  const handleManageCDP = (cdp: CDPWithAsset) => {
-    setSelectedCDP(cdp);
-    setActiveActionTab(CDPAction.BOOST); // Default action tab
-  };
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
-  // Handle going back to the CDP list
-  const handleBackToList = () => {
-    setSelectedCDP(null);
-    setActiveActionTab(null);
-  };
+  const program = useMemo(() => {
+    if (!isMounted || !connected || !publicKey || !anchorWallet) return null;
 
-  // Execute a CDP action
-  const handleExecuteAction = async (cdpId: string, actionType: CDPAction, amount: number) => {
-    setIsActionExecuting(true);
+    return getProgram(connection, anchorWallet);
+
+  }, [connected, publicKey, connection, isMounted, anchorWallet]); 
+
+  // Modified to accept program instance
+  const updateCollateralRatio = useCallback(async (prog: Program<SolanaDai> | null) => {
+    if (!prog || !publicKey) return;
+
+    setIsFetchingRatio(true);
+    setStatusMessage(null);
     try {
-      const result = await executeCDPAction({
-        cdpId,
-        actionType,
-        amount
-      });
-      
-      if (!result.success) {
-        alert(result.message);
-      }
-    } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
-      alert(errorMessage || `Failed to execute ${actionType}`);
+      const ratio = await getCollateralRatio(prog, connection, publicKey, PYTH_SOL_USD_PRICE_ACCOUNT);
+      setCollateralRatio(ratio);
+    } catch (error: any) {
+      console.error("Failed to fetch collateral ratio:", error);
+      setCollateralRatio(null);
+      setStatusMessage({ text: `Failed to fetch ratio: ${error.message || 'Unknown error'}`, type: 'error' });
     } finally {
-      setIsActionExecuting(false);
+      setIsFetchingRatio(false);
     }
-  };
+  }, [publicKey, connection]); 
 
-  // Get appropriate max amounts for different actions
-  const getMaxActionAmount = (actionType: CDPAction): number => {
-    if (!selectedCDP) return 0;
+  useEffect(() => {
+    const fetchInitialData = async (prog: Program<SolanaDai>) => { 
+        if (!publicKey) return; 
+
+        setIsFetchingSystemState(true);
+        let systemStateExists = false; 
+        try {
+            const systemStatePDA = findSystemStatePDA();
+            const systemStateInfo = await connection.getAccountInfo(systemStatePDA); 
+
+            if (systemStateInfo) {
+              const systemState = prog.coder.accounts.decode("SystemState", systemStateInfo.data);
+              setDaiMintAddress(systemState.daiMint);
+              console.log("DAI Mint Address fetched:", systemState.daiMint.toBase58());
+              systemStateExists = true; 
+            } else {
+              console.warn("SystemState account not found. Please initialize the program.");
+              setStatusMessage({ text: 'Program configuration (SystemState) not found. Needs initialization.', type: 'error' });
+              setDaiMintAddress(null);
+            }
+        } catch (err: any) {
+            console.error("Failed to fetch/decode system state:", err);
+            setStatusMessage({ text: `Failed to fetch program configuration: ${err.message || 'Unknown error'}`, type: 'error' });
+            setDaiMintAddress(null);
+        } finally {
+            setIsFetchingSystemState(false);
+        }
+
+        if (systemStateExists) {
+            await updateCollateralRatio(prog);
+        }
+    };
+
+    if (connected && program) {
+        fetchInitialData(program);
+    }
+  }, [connected, program, publicKey, connection, isMounted]);
+
+  const handleTransaction = useCallback(async (instructionPromise: Promise<TransactionInstruction>, successMessage: string, errorMessagePrefix: string) => {
+    if (!program || !anchorWallet) { 
+        setStatusMessage({ text: 'Wallet not connected or program not ready.', type: 'error' });
+        console.error("handleTransaction: Program or anchorWallet is null.");
+        return;
+    }
+    const provider = program.provider;
+    if (!provider) {
+       setStatusMessage({ text: 'Program provider not ready.', type: 'error' });
+       console.error("handleTransaction: Program provider is null.");
+       return;
+    }
+    if (!publicKey) {
+       setStatusMessage({ text: 'Wallet not connected.', type: 'error' });
+       console.error("handleTransaction: Public key is null.");
+       return;
+    }
+
+    setIsProcessingTx(true);
+    setStatusMessage(null);
+
+    try {
+        const instruction = await instructionPromise;
+        const tx = new Transaction().add(instruction);
+
+        if (!provider) {
+          throw new Error("Provider is not available after initial check."); 
+        }
+        
+        const signature = await provider.sendAndConfirm(tx);
+
+        setStatusMessage({ text: `${successMessage} Signature: ${signature}`, type: 'success' });
+        setDepositAmount(''); 
+        setMintAmount('');
+        await updateCollateralRatio(program); 
+    } catch (error: any) {
+        console.error(`${errorMessagePrefix} error:`, error);
+        let message = error.message || 'Unknown error';
+        if (error.logs) { 
+          const log = error.logs.find((l: string) => l.includes('Program log: Error: '));
+          if (log) {
+            message = log.split('Program log: Error: ')[1];
+          } else if (error.toString().includes('0x1771')) { 
+             message = "Slippage tolerance exceeded. Please try again.";
+          } else if (error.toString().includes('Transaction simulation failed')) {
+            message = "Transaction simulation failed. Check inputs or network congestion.";
+          }
+        }
+        setStatusMessage({ text: `${errorMessagePrefix}: ${message}`, type: 'error' });
+    } finally {
+        setIsProcessingTx(false);
+    }
+  }, [program, publicKey, connection, updateCollateralRatio, anchorWallet]); 
+
+  const handleDeposit = useCallback(async () => {
+    if (!program || !publicKey || !depositAmount) return;
+    if (isNaN(parseFloat(depositAmount)) || parseFloat(depositAmount) <= 0) {
+        setStatusMessage({ text: 'Invalid deposit amount.', type: 'error' });
+        return;
+    }
+
+    const amountSOL = parseFloat(depositAmount);
+    const amountLamports = new BN(amountSOL * LAMPORTS_PER_SOL);
     
-    switch (actionType) {
-      case CDPAction.BOOST:
-        // Max amount to borrow is based on available collateral value
-        const maxBorrow = (selectedCDP.collateralAmount * selectedCDP.asset.priceUSD * selectedCDP.asset.maxLTV) - selectedCDP.debtAmount;
-        return Math.max(0, maxBorrow);
-      case CDPAction.REPAY:
-        // Max amount of collateral to take out for repayment (keeping a safety buffer)
-        const safeWithdrawalAmount = selectedCDP.collateralAmount * 0.8;
-        return safeWithdrawalAmount;
-      case CDPAction.SUPPLY:
-        // For demo purposes, limit to 100 of the asset
-        return 100;
-      case CDPAction.WITHDRAW:
-        // Max withdrawal while maintaining safe collateral ratio
-        const minRequiredCollateral = (selectedCDP.debtAmount * selectedCDP.asset.liquidationRatio * 1.1) / selectedCDP.asset.priceUSD;
-        const availableToWithdraw = selectedCDP.collateralAmount - minRequiredCollateral;
-        return Math.max(0, availableToWithdraw);
-      case CDPAction.BORROW:
-        // Same as BOOST
-        const maxBorrowAmount = (selectedCDP.collateralAmount * selectedCDP.asset.priceUSD * selectedCDP.asset.maxLTV) - selectedCDP.debtAmount;
-        return Math.max(0, maxBorrowAmount);
-      case CDPAction.PAYBACK:
-        // Can pay back up to the full debt amount
-        return selectedCDP.debtAmount;
-      default:
-        return 0;
-    }
-  };
-
-  // Render the CDP management view when a CDP is selected
-  const renderCDPManagement = () => {
-    if (!selectedCDP) return null;
-
-    return (
-      <div>
-        <div className="mb-4">
-          <button 
-            onClick={handleBackToList}
-            className="flex items-center text-accent hover:underline"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
-            Back to CDPs
-          </button>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* CDP Details */}
-          <div className="md:col-span-1">
-            <CDPDetailsCard cdp={selectedCDP} onManage={() => {}} />
-          </div>
-
-          {/* CDP Actions */}
-          <div className="md:col-span-2">
-            <div className="bg-card rounded-lg border border-border overflow-hidden">
-              {/* Action Tabs */}
-              <div className="flex overflow-x-auto scrollbar-hide">
-                {[
-                  CDPAction.BOOST,
-                  CDPAction.REPAY,
-                  CDPAction.SUPPLY,
-                  CDPAction.WITHDRAW,
-                  CDPAction.BORROW,
-                  CDPAction.PAYBACK
-                ].map((action) => (
-                  <button
-                    key={action}
-                    className={`px-4 py-3 text-sm font-medium whitespace-nowrap transition-colors ${
-                      activeActionTab === action
-                        ? 'border-b-2 border-accent text-accent'
-                        : 'text-muted-foreground hover:text-foreground'
-                    }`}
-                    onClick={() => setActiveActionTab(action)}
-                  >
-                    {action.charAt(0) + action.slice(1).toLowerCase()}
-                  </button>
-                ))}
-              </div>
-
-              {/* Action Content */}
-              <div className="p-4">
-                {activeActionTab && (
-                  <CDPActionCard
-                    cdp={selectedCDP}
-                    actionType={activeActionTab}
-                    onExecute={handleExecuteAction}
-                    maxAmount={getMaxActionAmount(activeActionTab)}
-                    isExecuting={isActionExecuting}
-                  />
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+    await handleTransaction(
+        createDepositInstruction(program, publicKey, amountLamports),
+        'Deposit successful!',
+        'Deposit failed'
     );
-  };
+  }, [program, publicKey, depositAmount, handleTransaction]);
 
-  // Render the CDP list view
-  const renderCDPList = () => {
-    if (isLoading) {
-      return <div className="text-center py-10">Loading your CDPs...</div>;
+  const handleMint = useCallback(async () => {
+    if (!program || !publicKey || !mintAmount) return;
+    if (isNaN(parseFloat(mintAmount)) || parseFloat(mintAmount) <= 0) {
+        setStatusMessage({ text: 'Invalid mint amount.', type: 'error' });
+        return;
+    }
+    if (!daiMintAddress) {
+      setStatusMessage({ text: 'DAI configuration not loaded. Cannot mint.', type: 'error' });
+      return;
     }
 
-    if (error) {
-      return (
-        <div className="text-center py-10 text-error">
-          Error loading your CDPs. Please try again.
-        </div>
-      );
-    }
+    const amountDAI = parseFloat(mintAmount);
+    const amountBaseUnits = new BN(amountDAI).mul(DAI_FACTOR);
 
-    if (!connected) {
-      return (
-        <div className="text-center py-10">
-          <div className="mb-4 text-muted-foreground">Connect your wallet to view your CDPs</div>
-          <Button variant="primary" size="lg" disabled>
-            Connect Wallet
-          </Button>
-        </div>
-      );
-    }
-
-    if (cdps.length === 0) {
-      return (
-        <div className="text-center py-10">
-          <div className="mb-6">
-            <div className="relative mx-auto w-24 h-24 mb-4">
-              <Image 
-                src="/assets/empty-cdp.png" 
-                alt="No CDPs found" 
-                width={96} 
-                height={96}
-                className="opacity-60"
-              />
-            </div>
-            <h3 className="text-lg font-medium mb-2">No Vaults Found</h3>
-            <p className="text-muted-foreground">
-              You don&apos;t have any active vaults. Create a CDP to get started.
-            </p>
-          </div>
-          <Button
-            variant="primary"
-            size="lg"
-            onClick={() => window.location.href = '/create-cdp'}
-          >
-            Create CDP
-          </Button>
-        </div>
-      );
-    }
-
-    return (
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {cdps.map((cdp) => (
-          <CDPDetailsCard
-            key={cdp.id}
-            cdp={cdp}
-            onManage={handleManageCDP}
-          />
-        ))}
-      </div>
+    await handleTransaction(
+        createMintInstruction(program, publicKey, amountBaseUnits, daiMintAddress, PYTH_SOL_USD_PRICE_ACCOUNT),
+        'Mint successful!',
+        'Mint failed'
     );
-  };
+  }, [program, publicKey, mintAmount, handleTransaction, daiMintAddress]); 
+
+  if (!isMounted) {
+    return null; 
+  }
 
   return (
-    <main className="min-h-screen flex flex-col">
+    <div className="min-h-screen bg-background text-foreground">
       <Header />
-      <div className="flex-1 container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Manage CDPs</h1>
-          <p className="text-muted-foreground">
-            View and manage your active CDPs. Add collateral, borrow more DAI, or pay back your debt.
-          </p>
-        </div>
+      <main className="container mx-auto px-4 py-8">
+        <h1 className="text-3xl font-bold mb-6">Manage Your Vault</h1>
 
-        {connected && cdps.length > 0 && (
-          <CDPPortfolioOverview stats={cdpStats} />
+        {!connected ? (
+          <div className="text-center py-10">
+            <p className="text-muted-foreground mb-4">Connect your wallet to manage your vault.</p>
+            <Button variant="primary" size="lg" disabled>
+              Connect Wallet (Use Adapter Button)
+            </Button>
+          </div>
+        ) : (
+          <div className="space-y-8">
+            <section className="bg-card p-6 rounded-lg border border-border">
+              <h2 className="text-xl font-semibold mb-4">Vault Status</h2>
+              {isFetchingSystemState && <p className="text-sm text-muted-foreground mb-2">Loading configuration...</p>}
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-muted-foreground">Collateral Ratio:</span>
+                {isFetchingRatio ? (
+                  <span className="text-muted-foreground">Loading...</span>
+                ) : collateralRatio !== null ? (
+                  <span className={`font-bold text-lg ${collateralRatio < 1.5 ? 'text-error' : collateralRatio < 2 ? 'text-warning' : 'text-success'}`}>
+                    {(collateralRatio * 100).toFixed(2)}%
+                  </span>
+                ) : (
+                  <span className="text-muted-foreground">N/A</span>
+                )}
+              </div>
+            </section>
+
+            <section className="bg-card p-6 rounded-lg border border-border">
+              <h2 className="text-xl font-semibold mb-4">Deposit SOL</h2>
+              <div className="flex flex-col sm:flex-row gap-4 items-end">
+                <div className="flex-grow">
+                  <label htmlFor="deposit-amount" className="block text-sm font-medium text-muted-foreground mb-1">Amount (SOL)</label>
+                  <input 
+                      id="deposit-amount"
+                      type="number" 
+                      value={depositAmount}
+                      onChange={(e) => setDepositAmount(e.target.value)} 
+                      placeholder="e.g., 1.5" 
+                      disabled={isProcessingTx}
+                      className="w-full px-3 py-2 bg-input border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-accent"
+                  />
+                </div>
+                <Button 
+                    variant="primary"
+                    onClick={handleDeposit}
+                    disabled={isProcessingTx || !depositAmount || parseFloat(depositAmount) <= 0}
+                    className="w-full sm:w-auto"
+                >
+                    {isProcessingTx ? 'Processing...' : 'Deposit SOL'}
+                </Button>
+              </div>
+            </section>
+
+            <section className="bg-card p-6 rounded-lg border border-border">
+              <h2 className="text-xl font-semibold mb-4">Mint DAI</h2>
+               <div className="flex flex-col sm:flex-row gap-4 items-end">
+                <div className="flex-grow">
+                  <label htmlFor="mint-amount" className="block text-sm font-medium text-muted-foreground mb-1">Amount (DAI)</label>
+                  <input 
+                      id="mint-amount"
+                      type="number" 
+                      value={mintAmount}
+                      onChange={(e) => setMintAmount(e.target.value)} 
+                      placeholder="e.g., 100" 
+                      disabled={isProcessingTx}
+                      className="w-full px-3 py-2 bg-input border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-accent"
+                  />
+                </div>
+                <Button 
+                    variant="secondary" 
+                    onClick={handleMint}
+                    disabled={isProcessingTx || !mintAmount || parseFloat(mintAmount) <= 0 || collateralRatio === null || !daiMintAddress}
+                    className="w-full sm:w-auto"
+                >
+                    {isProcessingTx ? 'Processing...' : 'Mint DAI'}
+                </Button>
+              </div>
+              {collateralRatio !== null && collateralRatio < 1.5 && (
+                  <p className="text-sm text-error mt-3">Warning: Minting more DAI may lower your collateral ratio further, increasing liquidation risk.</p>
+              )}
+            </section>
+
+            {statusMessage && (
+                <div className={`p-4 rounded-md ${statusMessage.type === 'success' ? 'bg-success/20 text-success' : 'bg-error/20 text-error'}`}>
+                    {statusMessage.text}
+                </div>
+            )}
+          </div>
         )}
-
-        {selectedCDP ? renderCDPManagement() : renderCDPList()}
-      </div>
-    </main>
+      </main>
+    </div>
   );
 }
