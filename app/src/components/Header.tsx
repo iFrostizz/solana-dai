@@ -18,7 +18,7 @@ const Header: React.FC = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center">
             <Link href="/" className="flex items-center">
-              <span className="text-2xl font-bold gradient-text">Solana DAI</span>
+              <span className="text-2xl font-bold gradient-text">Solana USDE</span>
             </Link>
             <nav className="hidden md:flex ml-10 space-x-6">
               <Link 

@@ -13,7 +13,7 @@ export default function CreateCDPPage() {
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">Create a CDP</h1>
           <p className="text-muted-foreground">
-            Generate Solana DAI by locking your Solana assets as collateral in a Collateralized Debt Position (CDP).
+            Generate Solana USDE by locking your Solana assets as collateral in a Collateralized Debt Position (CDP).
           </p>
         </div>
         
@@ -24,9 +24,9 @@ export default function CreateCDPPage() {
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="mb-4 md:mb-0">
-              <span className="text-lg font-bold gradient-text">Solana DAI</span>
+              <span className="text-lg font-bold gradient-text">Solana USDE</span>
               <p className="text-sm text-muted-foreground mt-1">
-                © 2025 Solana DAI. All rights reserved.
+                &copy; 2025 Solana USDE. All rights reserved.
               </p>
             </div>
             <div className="flex space-x-6">
@@ -37,7 +37,7 @@ export default function CreateCDPPage() {
                 Docs
               </Link>
               <Link 
-                href="https://github.com/iFrostizz/solana-dai" 
+                href="https://github.com/iFrostizz/solana-usde" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="text-muted-foreground hover:text-accent transition-colors"

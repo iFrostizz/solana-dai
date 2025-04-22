@@ -72,7 +72,7 @@ export default function CDPDetailsCard({ cdp, onManage }: CDPDetailsCardProps) {
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">Debt:</span>
             <span className="font-medium">
-              {formatNumber(cdp.debtAmount)} DAI
+              {formatNumber(cdp.debtAmount)} USDE
             </span>
           </div>
           

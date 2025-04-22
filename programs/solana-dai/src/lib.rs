@@ -6,7 +6,7 @@ use anchor_spl::token::{self};
 use pyth_sdk_solana::state::SolanaPriceAccount;
 use anchor_lang::solana_program::{clock::Clock, sysvar::{Sysvar, rent::Rent}};
 
-declare_id!("BnG9CbMoLRcpHvCsDiAuF36T8jMxXpWSGCWDn68gGxKz");
+declare_id!("EbQ1HRwaew1zZdSckf7pz7TtPFvD1mQBmdRR5PfbZ8s8");
 
 pub const DECIMALS: u8 = 6;
 pub const LIQUDATION_THRESHOLD: u64 = 150;

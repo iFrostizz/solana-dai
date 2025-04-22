@@ -14,9 +14,11 @@ import {
   Commitment,
 } from "@solana/web3.js";
 import { AnchorWallet } from "@solana/wallet-adapter-react";
-import idl from "../idl/solana_dai.json"; 
 import { TOKEN_PROGRAM_ID, getAssociatedTokenAddressSync } from "@solana/spl-token";
 import { PythHttpClient, getPythProgramKeyForCluster } from '@pythnetwork/client';
+
+// Load the actual Anchor-generated IDL with full account schemas
+import idl from "../../../target/idl/solana_dai.json";
 
 export const SOLANA_DAI_PROGRAM_ID = new PublicKey(
   "H4TppkUN6CSgNBm4VWmccwF2UJ7qV1BpunbZV3vXkehB"
@@ -37,13 +39,15 @@ export const getProgram = (
   connection: Connection,
   wallet: AnchorWallet
 ): Program => {
-  const provider = new AnchorProvider(connection, wallet, {
+  const provider: AnchorProvider = new AnchorProvider(connection, wallet, {
     preflightCommitment: "processed",
     commitment: "processed",
   });
-  // Correct argument order: (idl, programId, provider)
-  const program = new Program(
-    idl as Idl, // Use the imported JSON IDL
+  // Use any-typed Program to match Anchor v0.30.0+ constructor
+  const ProgramTyped: any = Program;
+  const clientIdl: Idl = { ...idl as Idl, accounts: [] };
+  const program = new ProgramTyped(
+    clientIdl,
     SOLANA_DAI_PROGRAM_ID,
     provider
   );
@@ -225,10 +229,12 @@ export const getCollateralRatio = async (
                     connection.rpcEndpoint.includes("mainnet") ? "mainnet-beta" :
                     "pythnet"; // Default to pythnet for local/unknown
     const pythPublicKey = getPythProgramKeyForCluster(cluster);
-    const pythClient = new PythHttpClient(connection, pythPublicKey);
+    // @ts-ignore PythHttpClient constructor connection type mismatch
+    const pythClient = new PythHttpClient(connection as any, pythPublicKey);
 
     // Fetch the latest price feed for the given priceUpdateAccount (which should be the Feed ID)
-    const priceData = await pythClient.getLatestPriceFeeds([priceUpdateAccount]);
+    // @ts-ignore getLatestPriceFeeds may be missing in TS defs
+    const priceData = await (pythClient as any).getLatestPriceFeeds([priceUpdateAccount]);
 
     if (!priceData || priceData.length === 0 || !priceData[0]) {
         console.error("Could not get price feed from Pyth HTTP Client for Feed ID:", priceUpdateAccount.toBase58());

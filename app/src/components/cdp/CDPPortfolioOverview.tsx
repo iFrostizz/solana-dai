@@ -43,7 +43,7 @@ const CDPPortfolioOverview: React.FC<CDPPortfolioOverviewProps> = ({ stats }) =>
         
         <div>
           <h4 className="text-sm font-medium text-muted-foreground mb-1">Available to Borrow</h4>
-          <div className="text-2xl font-bold">{formatUSD(stats.availableDaiToBorrow)}</div>
+          <div className="text-2xl font-bold">{formatUSD(stats.availableDaiToBorrow).replace('DAI', 'USDE')}</div>
         </div>
         
         <div>

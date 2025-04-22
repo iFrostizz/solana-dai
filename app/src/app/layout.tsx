@@ -11,9 +11,9 @@ const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 // Security headers and metadata
 export async function generateMetadata(): Promise<Metadata> {
   const baseMetadata: Metadata = {
-    title: 'Solana DAI - Decentralized Stablecoin',
+    title: 'Solana USDE - Decentralized Stablecoin',
     description: 'A decentralized stablecoin backed by Solana assets',
-    metadataBase: new URL('https://solana-dai.com'),
+    metadataBase: new URL('https://solana-usde.com'),
   };
   
   return {

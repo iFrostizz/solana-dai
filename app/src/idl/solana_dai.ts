@@ -1,5 +1,5 @@
 export type SolanaDai = {
-  "address": "BnG9CbMoLRcpHvCsDiAuF36T8jMxXpWSGCWDn68gGxKz",
+  "address": "EbQ1HRwaew1zZdSckf7pz7TtPFvD1mQBmdRR5PfbZ8s8",
   "metadata": {
     "name": "solana_dai",
     "version": "0.1.0",
@@ -19,31 +19,100 @@ export type SolanaDai = {
         42,
         93
       ],
-      "accounts": [],
-      "args": [
+      "accounts": [
         {
-          "name": "_amount",
-          "type": "u64"
+          "name": "owner",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "price_update"
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  111,
+                  108,
+                  97,
+                  110,
+                  97,
+                  95,
+                  100,
+                  97,
+                  105,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault_authority",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  111,
+                  108,
+                  97,
+                  110,
+                  97,
+                  95,
+                  100,
+                  97,
+                  105,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104,
+                  111,
+                  114,
+                  105,
+                  116,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
         }
-      ]
-    },
-    {
-      "name": "collateral_ratio",
-      "discriminator": [
-        139,
-        103,
-        138,
-        221,
-        86,
-        234,
-        192,
-        179
       ],
-      "accounts": [],
       "args": [
         {
-          "name": "_account",
-          "type": "pubkey"
+          "name": "amount",
+          "type": "u64"
         }
       ]
     },
@@ -312,13 +381,95 @@ export type SolanaDai = {
         39,
         74
       ],
-      "accounts": [],
-      "args": [
+      "accounts": [
         {
-          "name": "_amount",
-          "type": "u64"
+          "name": "liquidator",
+          "signer": true
+        },
+        {
+          "name": "owner"
+        },
+        {
+          "name": "price_update"
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  111,
+                  108,
+                  97,
+                  110,
+                  97,
+                  95,
+                  100,
+                  97,
+                  105,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault_authority",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  111,
+                  108,
+                  97,
+                  110,
+                  97,
+                  95,
+                  100,
+                  97,
+                  105,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104,
+                  111,
+                  114,
+                  105,
+                  116,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
         }
-      ]
+      ],
+      "args": []
     },
     {
       "name": "mint",
@@ -581,16 +732,147 @@ export type SolanaDai = {
         161,
         34
       ],
-      "accounts": [],
+      "accounts": [
+        {
+          "name": "owner",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_state",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  111,
+                  108,
+                  97,
+                  110,
+                  97,
+                  95,
+                  100,
+                  97,
+                  105,
+                  95,
+                  115,
+                  121,
+                  115,
+                  116,
+                  101,
+                  109,
+                  95,
+                  115,
+                  116,
+                  97,
+                  116,
+                  101
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  111,
+                  108,
+                  97,
+                  110,
+                  97,
+                  95,
+                  100,
+                  97,
+                  105,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault_authority",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  111,
+                  108,
+                  97,
+                  110,
+                  97,
+                  95,
+                  100,
+                  97,
+                  105,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104,
+                  111,
+                  114,
+                  105,
+                  116,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
       "args": [
         {
-          "name": "_amount",
+          "name": "amount",
           "type": "u64"
         }
       ]
     }
   ],
   "accounts": [
+    {
+      "name": "Owner",
+      "discriminator": [
+        165,
+        244,
+        246,
+        95,
+        129,
+        120,
+        224,
+        155
+      ]
+    },
     {
       "name": "SystemState",
       "discriminator": [
@@ -602,7 +884,97 @@ export type SolanaDai = {
         137,
         229,
         240
-      ],
+      ]
+    },
+    {
+      "name": "Vault",
+      "discriminator": [
+        211,
+        8,
+        232,
+        43,
+        2,
+        152,
+        117,
+        119
+      ]
+    },
+    {
+      "name": "VaultAuthority",
+      "discriminator": [
+        132,
+        34,
+        187,
+        202,
+        202,
+        195,
+        211,
+        53
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "VaultNotInitialized",
+      "msg": "Vault not initialized"
+    },
+    {
+      "code": 6001,
+      "name": "BelowCollateralRatio",
+      "msg": "Below minimum collateral ratio"
+    },
+    {
+      "code": 6002,
+      "name": "OverCollateralRatio",
+      "msg": "Over minimum collateral ratio"
+    },
+    {
+      "code": 6003,
+      "name": "InsufficientCollateral",
+      "msg": "Insufficient collateral"
+    },
+    {
+      "code": 6004,
+      "name": "InsufficientDebt",
+      "msg": "Insufficient debt"
+    },
+    {
+      "code": 6005,
+      "name": "HasOutstandingDebt",
+      "msg": "User has outstanding debt"
+    },
+    {
+      "code": 6006,
+      "name": "PythPriceFeedNotFound",
+      "msg": "Pyth price feed not found"
+    },
+    {
+      "code": 6007,
+      "name": "PythPriceNotAvailable",
+      "msg": "Pyth price not available"
+    },
+    {
+      "code": 6008,
+      "name": "MathOverflow",
+      "msg": "Math overflow"
+    }
+  ],
+  "types": [
+    {
+      "name": "Owner",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "_reserved",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "SystemState",
       "type": {
         "kind": "struct",
         "fields": [
@@ -635,16 +1007,6 @@ export type SolanaDai = {
     },
     {
       "name": "Vault",
-      "discriminator": [
-        211,
-        8,
-        232,
-        43,
-        2,
-        152,
-        117,
-        119
-      ],
       "type": {
         "kind": "struct",
         "fields": [
@@ -672,75 +1034,22 @@ export type SolanaDai = {
       }
     },
     {
-      "name": "VaultAuthorityOwner",
-      "discriminator": [
-        101,
-        74,
-        209,
-        3,
-        120,
-        48,
-        22,
-        209
-      ],
+      "name": "VaultAuthority",
       "type": {
         "kind": "struct",
-        "fields": []
+        "fields": [
+          {
+            "name": "_reserved",
+            "type": "u8"
+          }
+        ]
       }
     }
-  ],
-  "errors": [
-    {
-      "code": 6000,
-      "name": "VaultNotInitialized",
-      "msg": "Vault is not initialized."
-    },
-    {
-      "code": 6001,
-      "name": "InvalidVaultOwner",
-      "msg": "Vault owner does not match."
-    },
-    {
-      "code": 6002,
-      "name": "BelowCollateralRatio",
-      "msg": "Collateral value is below the minimum required ratio."
-    },
-    {
-      "code": 6003,
-      "name": "InvalidPriceFeed",
-      "msg": "Invalid Pyth price feed account."
-    },
-    {
-      "code": 6004,
-      "name": "PythPriceFeedNotFound",
-      "msg": "Pyth price feed not found or failed to load."
-    },
-    {
-      "code": 6005,
-      "name": "PythPriceNotAvailable",
-      "msg": "Pyth price is not available or too old."
-    },
-    {
-      "code": 6006,
-      "name": "InvalidMintAccount",
-      "msg": "Invalid mint account provided."
-    },
-    {
-      "code": 6007,
-      "name": "InvalidMintAuthority",
-      "msg": "Invalid mint authority specified."
-    },
-    {
-      "code": 6008,
-      "name": "MathOverflow",
-      "msg": "Math operation overflow."
-    }
-  ],
-  "types": []
+  ]
 };
 
 export const IDL: SolanaDai = {
-  "address": "BnG9CbMoLRcpHvCsDiAuF36T8jMxXpWSGCWDn68gGxKz",
+  "address": "EbQ1HRwaew1zZdSckf7pz7TtPFvD1mQBmdRR5PfbZ8s8",
   "metadata": {
     "name": "solana_dai",
     "version": "0.1.0",
@@ -760,31 +1069,100 @@ export const IDL: SolanaDai = {
         42,
         93
       ],
-      "accounts": [],
-      "args": [
+      "accounts": [
         {
-          "name": "_amount",
-          "type": "u64"
+          "name": "owner",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "price_update"
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  111,
+                  108,
+                  97,
+                  110,
+                  97,
+                  95,
+                  100,
+                  97,
+                  105,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault_authority",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  111,
+                  108,
+                  97,
+                  110,
+                  97,
+                  95,
+                  100,
+                  97,
+                  105,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104,
+                  111,
+                  114,
+                  105,
+                  116,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
         }
-      ]
-    },
-    {
-      "name": "collateral_ratio",
-      "discriminator": [
-        139,
-        103,
-        138,
-        221,
-        86,
-        234,
-        192,
-        179
       ],
-      "accounts": [],
       "args": [
         {
-          "name": "_account",
-          "type": "pubkey"
+          "name": "amount",
+          "type": "u64"
         }
       ]
     },
@@ -1053,13 +1431,95 @@ export const IDL: SolanaDai = {
         39,
         74
       ],
-      "accounts": [],
-      "args": [
+      "accounts": [
         {
-          "name": "_amount",
-          "type": "u64"
+          "name": "liquidator",
+          "signer": true
+        },
+        {
+          "name": "owner"
+        },
+        {
+          "name": "price_update"
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  111,
+                  108,
+                  97,
+                  110,
+                  97,
+                  95,
+                  100,
+                  97,
+                  105,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault_authority",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  111,
+                  108,
+                  97,
+                  110,
+                  97,
+                  95,
+                  100,
+                  97,
+                  105,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104,
+                  111,
+                  114,
+                  105,
+                  116,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
         }
-      ]
+      ],
+      "args": []
     },
     {
       "name": "mint",
@@ -1322,16 +1782,147 @@ export const IDL: SolanaDai = {
         161,
         34
       ],
-      "accounts": [],
+      "accounts": [
+        {
+          "name": "owner",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_state",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  111,
+                  108,
+                  97,
+                  110,
+                  97,
+                  95,
+                  100,
+                  97,
+                  105,
+                  95,
+                  115,
+                  121,
+                  115,
+                  116,
+                  101,
+                  109,
+                  95,
+                  115,
+                  116,
+                  97,
+                  116,
+                  101
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  111,
+                  108,
+                  97,
+                  110,
+                  97,
+                  95,
+                  100,
+                  97,
+                  105,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault_authority",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  111,
+                  108,
+                  97,
+                  110,
+                  97,
+                  95,
+                  100,
+                  97,
+                  105,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104,
+                  111,
+                  114,
+                  105,
+                  116,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
       "args": [
         {
-          "name": "_amount",
+          "name": "amount",
           "type": "u64"
         }
       ]
     }
   ],
   "accounts": [
+    {
+      "name": "Owner",
+      "discriminator": [
+        165,
+        244,
+        246,
+        95,
+        129,
+        120,
+        224,
+        155
+      ]
+    },
     {
       "name": "SystemState",
       "discriminator": [
@@ -1343,7 +1934,97 @@ export const IDL: SolanaDai = {
         137,
         229,
         240
-      ],
+      ]
+    },
+    {
+      "name": "Vault",
+      "discriminator": [
+        211,
+        8,
+        232,
+        43,
+        2,
+        152,
+        117,
+        119
+      ]
+    },
+    {
+      "name": "VaultAuthority",
+      "discriminator": [
+        132,
+        34,
+        187,
+        202,
+        202,
+        195,
+        211,
+        53
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "VaultNotInitialized",
+      "msg": "Vault not initialized"
+    },
+    {
+      "code": 6001,
+      "name": "BelowCollateralRatio",
+      "msg": "Below minimum collateral ratio"
+    },
+    {
+      "code": 6002,
+      "name": "OverCollateralRatio",
+      "msg": "Over minimum collateral ratio"
+    },
+    {
+      "code": 6003,
+      "name": "InsufficientCollateral",
+      "msg": "Insufficient collateral"
+    },
+    {
+      "code": 6004,
+      "name": "InsufficientDebt",
+      "msg": "Insufficient debt"
+    },
+    {
+      "code": 6005,
+      "name": "HasOutstandingDebt",
+      "msg": "User has outstanding debt"
+    },
+    {
+      "code": 6006,
+      "name": "PythPriceFeedNotFound",
+      "msg": "Pyth price feed not found"
+    },
+    {
+      "code": 6007,
+      "name": "PythPriceNotAvailable",
+      "msg": "Pyth price not available"
+    },
+    {
+      "code": 6008,
+      "name": "MathOverflow",
+      "msg": "Math overflow"
+    }
+  ],
+  "types": [
+    {
+      "name": "Owner",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "_reserved",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "SystemState",
       "type": {
         "kind": "struct",
         "fields": [
@@ -1376,16 +2057,6 @@ export const IDL: SolanaDai = {
     },
     {
       "name": "Vault",
-      "discriminator": [
-        211,
-        8,
-        232,
-        43,
-        2,
-        152,
-        117,
-        119
-      ],
       "type": {
         "kind": "struct",
         "fields": [
@@ -1413,69 +2084,16 @@ export const IDL: SolanaDai = {
       }
     },
     {
-      "name": "VaultAuthorityOwner",
-      "discriminator": [
-        101,
-        74,
-        209,
-        3,
-        120,
-        48,
-        22,
-        209
-      ],
+      "name": "VaultAuthority",
       "type": {
         "kind": "struct",
-        "fields": []
+        "fields": [
+          {
+            "name": "_reserved",
+            "type": "u8"
+          }
+        ]
       }
     }
-  ],
-  "errors": [
-    {
-      "code": 6000,
-      "name": "VaultNotInitialized",
-      "msg": "Vault is not initialized."
-    },
-    {
-      "code": 6001,
-      "name": "InvalidVaultOwner",
-      "msg": "Vault owner does not match."
-    },
-    {
-      "code": 6002,
-      "name": "BelowCollateralRatio",
-      "msg": "Collateral value is below the minimum required ratio."
-    },
-    {
-      "code": 6003,
-      "name": "InvalidPriceFeed",
-      "msg": "Invalid Pyth price feed account."
-    },
-    {
-      "code": 6004,
-      "name": "PythPriceFeedNotFound",
-      "msg": "Pyth price feed not found or failed to load."
-    },
-    {
-      "code": 6005,
-      "name": "PythPriceNotAvailable",
-      "msg": "Pyth price is not available or too old."
-    },
-    {
-      "code": 6006,
-      "name": "InvalidMintAccount",
-      "msg": "Invalid mint account provided."
-    },
-    {
-      "code": 6007,
-      "name": "InvalidMintAuthority",
-      "msg": "Invalid mint authority specified."
-    },
-    {
-      "code": 6008,
-      "name": "MathOverflow",
-      "msg": "Math operation overflow."
-    }
-  ],
-  "types": []
+  ]
 };

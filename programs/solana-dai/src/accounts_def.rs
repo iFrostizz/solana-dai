@@ -28,10 +28,16 @@ pub struct Vault {
 }
 
 #[account]
-pub struct VaultAuthority {}
+pub struct VaultAuthority {
+    // Add a dummy field to ensure Anchor generates a type for this empty struct
+    pub _reserved: u8,
+}
 
 #[account]
-pub struct Owner {}
+pub struct Owner {
+    // Add a dummy field to ensure Anchor generates a type for this empty struct
+    pub _reserved: u8,
+}
 
 #[derive(Accounts)]
 pub struct Initialize<'info> {
@@ -172,6 +178,13 @@ pub struct Burn<'info> {
     #[account(mut)]
     pub owner: Signer<'info>,
 
+    #[account(
+        mut,
+        seeds = [SYSTEM_STATE_SEED],
+        bump = system_state.bump,
+    )]
+    pub system_state: Account<'info, SystemState>,
+
     /// CHECK: Pyth price feed account. Safety: This account is checked for correct address and deserialized in instruction logic.
     pub price_update: AccountInfo<'info>,
 
@@ -186,7 +199,7 @@ pub struct Burn<'info> {
     #[account(
         mut,
         seeds = [VAULT_AUTHORITY_SEED],
-        bump,
+        bump = system_state.vault_authority_bump,
     )]
     pub vault_authority: Account<'info, VaultAuthority>,
 
@@ -197,6 +210,13 @@ pub struct Burn<'info> {
 #[derive(Accounts)]
 pub struct Liquidate<'info> {
     pub liquidator: Signer<'info>,
+
+    #[account(
+        mut,
+        seeds = [SYSTEM_STATE_SEED],
+        bump = system_state.bump,
+    )]
+    pub system_state: Account<'info, SystemState>,
 
     pub owner: Account<'info, Owner>,
 
@@ -214,7 +234,7 @@ pub struct Liquidate<'info> {
     #[account(
         mut,
         seeds = [VAULT_AUTHORITY_SEED],
-        bump,
+        bump = system_state.vault_authority_bump,
     )]
     pub vault_authority: Account<'info, VaultAuthority>,
 

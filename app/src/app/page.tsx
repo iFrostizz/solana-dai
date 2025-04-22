@@ -14,7 +14,7 @@ export default function Home() {
           <div className="flex flex-col md:flex-row items-center">
             <div className="md:w-1/2 mb-10 md:mb-0">
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
-                <span className="gradient-text">Solana DAI</span>
+                <span className="gradient-text">Solana USDE</span>
               </h1>
               <p className="text-xl md:text-2xl text-muted-foreground mb-8 max-w-xl">
                 A decentralized stablecoin backed by Solana assets, providing stability in the volatile crypto market.
@@ -37,7 +37,7 @@ export default function Home() {
                 <div className="absolute inset-0 bg-accent/20 rounded-full blur-3xl"></div>
                 <div className="relative z-10 flex items-center justify-center h-full">
                   <div className="bg-card border border-border rounded-3xl p-6 shadow-lg w-5/6 aspect-square flex items-center justify-center">
-                    <span className="text-6xl md:text-8xl font-bold gradient-text">DAI</span>
+                    <span className="text-6xl md:text-8xl font-bold gradient-text">USDE</span>
                   </div>
                 </div>
               </div>
@@ -50,7 +50,7 @@ export default function Home() {
       <div className="py-20 bg-background">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Why Choose Solana DAI</h2>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Why Choose Solana USDE</h2>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
               Built on Solana&apos;s high-performance blockchain, our stablecoin provides the best of both worlds - stability and speed.
             </p>
@@ -66,7 +66,7 @@ export default function Home() {
               </div>
               <h3 className="text-xl font-bold mb-2">Stable Value</h3>
               <p className="text-muted-foreground">
-                Solana DAI maintains a soft peg to the US Dollar, providing stability in volatile markets.
+                Solana USDE maintains a soft peg to the US Dollar, providing stability in volatile markets.
               </p>
             </div>
             
@@ -92,7 +92,7 @@ export default function Home() {
               </div>
               <h3 className="text-xl font-bold mb-2">Fully Collateralized</h3>
               <p className="text-muted-foreground">
-                Each Solana DAI token is backed by Solana assets locked in transparent smart contracts.
+                Each Solana USDE token is backed by Solana assets locked in transparent smart contracts.
               </p>
             </div>
           </div>
@@ -115,16 +115,16 @@ export default function Home() {
               <div className="w-16 h-16 rounded-full bg-card border border-border flex items-center justify-center text-2xl font-bold mx-auto mb-6">1</div>
               <h3 className="text-xl font-bold mb-3">Deposit Collateral</h3>
               <p className="text-muted-foreground">
-                Lock up your Solana assets as collateral in a secure vault to back your generated DAI.
+                Lock up your Solana assets as collateral in a secure vault to back your generated USDE.
               </p>
             </div>
             
             {/* Step 2 */}
             <div className="text-center">
               <div className="w-16 h-16 rounded-full bg-card border border-border flex items-center justify-center text-2xl font-bold mx-auto mb-6">2</div>
-              <h3 className="text-xl font-bold mb-3">Generate DAI</h3>
+              <h3 className="text-xl font-bold mb-3">Generate USDE</h3>
               <p className="text-muted-foreground">
-                Create DAI stablecoins against your deposited collateral, maintaining a safe collateralization ratio.
+                Create USDE stablecoins against your deposited collateral, maintaining a safe collateralization ratio.
               </p>
             </div>
             
@@ -133,7 +133,7 @@ export default function Home() {
               <div className="w-16 h-16 rounded-full bg-card border border-border flex items-center justify-center text-2xl font-bold mx-auto mb-6">3</div>
               <h3 className="text-xl font-bold mb-3">Manage Your Position</h3>
               <p className="text-muted-foreground">
-                Add collateral, generate more DAI, or pay back your debt as needed through an intuitive interface.
+                Add collateral, generate more USDE, or pay back your debt as needed through an intuitive interface.
               </p>
             </div>
           </div>
@@ -154,7 +154,7 @@ export default function Home() {
           <div className="bg-card border border-border rounded-lg p-8 md:p-12 text-center max-w-4xl mx-auto">
             <h2 className="text-2xl md:text-3xl font-bold mb-4">Ready to get started?</h2>
             <p className="text-muted-foreground text-lg mb-8 max-w-2xl mx-auto">
-              Join the future of decentralized finance on Solana. Create your first CDP vault and experience the stability of Solana DAI.
+              Join the future of decentralized finance on Solana. Create your first CDP vault and experience the stability of Solana USDE.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link href="/create-cdp">
@@ -177,9 +177,9 @@ export default function Home() {
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="mb-4 md:mb-0">
-              <span className="text-lg font-bold gradient-text">Solana DAI</span>
+              <span className="text-lg font-bold gradient-text">Solana USDE</span>
               <p className="text-sm text-muted-foreground mt-1">
-                &copy; 2025 Solana DAI. All rights reserved.
+                &copy; 2025 Solana USDE. All rights reserved.
               </p>
             </div>
             <div className="flex space-x-6">

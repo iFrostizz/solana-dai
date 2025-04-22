@@ -130,12 +130,15 @@ export default function ManageCDP() {
           throw new Error("Provider is not available after initial check."); 
         }
         
-        const signature = await provider.sendAndConfirm(tx);
-
-        setStatusMessage({ text: `${successMessage} Signature: ${signature}`, type: 'success' });
-        setDepositAmount(''); 
-        setMintAmount('');
-        await updateCollateralRatio(program); 
+        if (typeof provider.sendAndConfirm === 'function') {
+          const signature = await provider.sendAndConfirm(tx);
+          setStatusMessage({ text: `${successMessage} Signature: ${signature}`, type: 'success' });
+        } else if (typeof provider.send === 'function') {
+          const signature = await provider.send(tx);
+          setStatusMessage({ text: `${successMessage} Signature: ${signature}`, type: 'success' });
+        } else {
+          throw new Error('Provider does not support send or sendAndConfirm.');
+        }
     } catch (error: any) {
         console.error(`${errorMessagePrefix} error:`, error);
         let message = error.message || 'Unknown error';
@@ -165,8 +168,10 @@ export default function ManageCDP() {
     const amountSOL = parseFloat(depositAmount);
     const amountLamports = new BN(amountSOL * LAMPORTS_PER_SOL);
     
+    // Await the instruction before passing to handleTransaction
+    const depositIx = await createDepositInstruction(program, publicKey, amountLamports);
     await handleTransaction(
-        createDepositInstruction(program, publicKey, amountLamports),
+        depositIx,
         'Deposit successful!',
         'Deposit failed'
     );

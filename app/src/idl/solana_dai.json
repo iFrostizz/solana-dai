@@ -1,0 +1,1193 @@
+{
+    "address": "EbQ1HRwaew1zZdSckf7pz7TtPFvD1mQBmdRR5PfbZ8s8",
+    "metadata": {
+      "name": "solana_dai",
+      "version": "0.1.0",
+      "spec": "0.1.0",
+      "description": "Created with Anchor"
+    },
+    "instructions": [
+      {
+        "name": "burn",
+        "discriminator": [
+          116,
+          110,
+          29,
+          56,
+          107,
+          219,
+          42,
+          93
+        ],
+        "accounts": [
+          {
+            "name": "owner",
+            "writable": true,
+            "signer": true
+          },
+          {
+            "name": "system_state",
+            "writable": true,
+            "pda": {
+              "seeds": [
+                {
+                  "kind": "const",
+                  "value": [
+                    115,
+                    111,
+                    108,
+                    97,
+                    110,
+                    97,
+                    95,
+                    100,
+                    97,
+                    105,
+                    95,
+                    115,
+                    121,
+                    115,
+                    116,
+                    101,
+                    109,
+                    95,
+                    115,
+                    116,
+                    97,
+                    116,
+                    101
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "name": "price_update"
+          },
+          {
+            "name": "vault",
+            "writable": true,
+            "pda": {
+              "seeds": [
+                {
+                  "kind": "const",
+                  "value": [
+                    115,
+                    111,
+                    108,
+                    97,
+                    110,
+                    97,
+                    95,
+                    100,
+                    97,
+                    105,
+                    95,
+                    118,
+                    97,
+                    117,
+                    108,
+                    116
+                  ]
+                },
+                {
+                  "kind": "account",
+                  "path": "owner"
+                }
+              ]
+            }
+          },
+          {
+            "name": "vault_authority",
+            "writable": true,
+            "pda": {
+              "seeds": [
+                {
+                  "kind": "const",
+                  "value": [
+                    115,
+                    111,
+                    108,
+                    97,
+                    110,
+                    97,
+                    95,
+                    100,
+                    97,
+                    105,
+                    95,
+                    118,
+                    97,
+                    117,
+                    108,
+                    116,
+                    95,
+                    97,
+                    117,
+                    116,
+                    104,
+                    111,
+                    114,
+                    105,
+                    116,
+                    121
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "name": "system_program",
+            "address": "11111111111111111111111111111111"
+          },
+          {
+            "name": "token_program",
+            "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+          }
+        ],
+        "args": [
+          {
+            "name": "amount",
+            "type": "u64"
+          }
+        ]
+      },
+      {
+        "name": "deposit",
+        "discriminator": [
+          242,
+          35,
+          198,
+          137,
+          82,
+          225,
+          242,
+          182
+        ],
+        "accounts": [
+          {
+            "name": "owner",
+            "writable": true,
+            "signer": true
+          },
+          {
+            "name": "system_state",
+            "writable": true,
+            "pda": {
+              "seeds": [
+                {
+                  "kind": "const",
+                  "value": [
+                    115,
+                    111,
+                    108,
+                    97,
+                    110,
+                    97,
+                    95,
+                    100,
+                    97,
+                    105,
+                    95,
+                    115,
+                    121,
+                    115,
+                    116,
+                    101,
+                    109,
+                    95,
+                    115,
+                    116,
+                    97,
+                    116,
+                    101
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "name": "vault",
+            "writable": true,
+            "pda": {
+              "seeds": [
+                {
+                  "kind": "const",
+                  "value": [
+                    115,
+                    111,
+                    108,
+                    97,
+                    110,
+                    97,
+                    95,
+                    100,
+                    97,
+                    105,
+                    95,
+                    118,
+                    97,
+                    117,
+                    108,
+                    116
+                  ]
+                },
+                {
+                  "kind": "account",
+                  "path": "owner"
+                }
+              ]
+            }
+          },
+          {
+            "name": "vault_authority",
+            "writable": true,
+            "pda": {
+              "seeds": [
+                {
+                  "kind": "const",
+                  "value": [
+                    115,
+                    111,
+                    108,
+                    97,
+                    110,
+                    97,
+                    95,
+                    100,
+                    97,
+                    105,
+                    95,
+                    118,
+                    97,
+                    117,
+                    108,
+                    116,
+                    95,
+                    97,
+                    117,
+                    116,
+                    104,
+                    111,
+                    114,
+                    105,
+                    116,
+                    121
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "name": "system_program",
+            "address": "11111111111111111111111111111111"
+          },
+          {
+            "name": "rent",
+            "address": "SysvarRent111111111111111111111111111111111"
+          }
+        ],
+        "args": [
+          {
+            "name": "amount",
+            "type": "u64"
+          }
+        ]
+      },
+      {
+        "name": "initialize",
+        "discriminator": [
+          175,
+          175,
+          109,
+          31,
+          13,
+          152,
+          155,
+          237
+        ],
+        "accounts": [
+          {
+            "name": "admin",
+            "writable": true,
+            "signer": true
+          },
+          {
+            "name": "system_state",
+            "writable": true,
+            "pda": {
+              "seeds": [
+                {
+                  "kind": "const",
+                  "value": [
+                    115,
+                    111,
+                    108,
+                    97,
+                    110,
+                    97,
+                    95,
+                    100,
+                    97,
+                    105,
+                    95,
+                    115,
+                    121,
+                    115,
+                    116,
+                    101,
+                    109,
+                    95,
+                    115,
+                    116,
+                    97,
+                    116,
+                    101
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "name": "dai_mint",
+            "writable": true
+          },
+          {
+            "name": "vault_authority",
+            "docs": [
+              "This is a PDA that will hold the SOL collateral so can be UncheckedAccount"
+            ],
+            "writable": true,
+            "pda": {
+              "seeds": [
+                {
+                  "kind": "const",
+                  "value": [
+                    115,
+                    111,
+                    108,
+                    97,
+                    110,
+                    97,
+                    95,
+                    100,
+                    97,
+                    105,
+                    95,
+                    118,
+                    97,
+                    117,
+                    108,
+                    116,
+                    95,
+                    97,
+                    117,
+                    116,
+                    104,
+                    111,
+                    114,
+                    105,
+                    116,
+                    121
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "name": "system_program",
+            "address": "11111111111111111111111111111111"
+          },
+          {
+            "name": "rent",
+            "address": "SysvarRent111111111111111111111111111111111"
+          }
+        ],
+        "args": []
+      },
+      {
+        "name": "liquidate",
+        "discriminator": [
+          223,
+          179,
+          226,
+          125,
+          48,
+          46,
+          39,
+          74
+        ],
+        "accounts": [
+          {
+            "name": "liquidator",
+            "signer": true
+          },
+          {
+            "name": "system_state",
+            "writable": true,
+            "pda": {
+              "seeds": [
+                {
+                  "kind": "const",
+                  "value": [
+                    115,
+                    111,
+                    108,
+                    97,
+                    110,
+                    97,
+                    95,
+                    100,
+                    97,
+                    105,
+                    95,
+                    115,
+                    121,
+                    115,
+                    116,
+                    101,
+                    109,
+                    95,
+                    115,
+                    116,
+                    97,
+                    116,
+                    101
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "name": "owner"
+          },
+          {
+            "name": "price_update"
+          },
+          {
+            "name": "vault",
+            "writable": true,
+            "pda": {
+              "seeds": [
+                {
+                  "kind": "const",
+                  "value": [
+                    115,
+                    111,
+                    108,
+                    97,
+                    110,
+                    97,
+                    95,
+                    100,
+                    97,
+                    105,
+                    95,
+                    118,
+                    97,
+                    117,
+                    108,
+                    116
+                  ]
+                },
+                {
+                  "kind": "account",
+                  "path": "owner"
+                }
+              ]
+            }
+          },
+          {
+            "name": "vault_authority",
+            "writable": true,
+            "pda": {
+              "seeds": [
+                {
+                  "kind": "const",
+                  "value": [
+                    115,
+                    111,
+                    108,
+                    97,
+                    110,
+                    97,
+                    95,
+                    100,
+                    97,
+                    105,
+                    95,
+                    118,
+                    97,
+                    117,
+                    108,
+                    116,
+                    95,
+                    97,
+                    117,
+                    116,
+                    104,
+                    111,
+                    114,
+                    105,
+                    116,
+                    121
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "name": "system_program",
+            "address": "11111111111111111111111111111111"
+          }
+        ],
+        "args": []
+      },
+      {
+        "name": "mint",
+        "discriminator": [
+          51,
+          57,
+          225,
+          47,
+          182,
+          146,
+          137,
+          166
+        ],
+        "accounts": [
+          {
+            "name": "owner",
+            "writable": true,
+            "signer": true,
+            "relations": [
+              "vault"
+            ]
+          },
+          {
+            "name": "system_state",
+            "writable": true,
+            "pda": {
+              "seeds": [
+                {
+                  "kind": "const",
+                  "value": [
+                    115,
+                    111,
+                    108,
+                    97,
+                    110,
+                    97,
+                    95,
+                    100,
+                    97,
+                    105,
+                    95,
+                    115,
+                    121,
+                    115,
+                    116,
+                    101,
+                    109,
+                    95,
+                    115,
+                    116,
+                    97,
+                    116,
+                    101
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "name": "vault",
+            "writable": true,
+            "pda": {
+              "seeds": [
+                {
+                  "kind": "const",
+                  "value": [
+                    115,
+                    111,
+                    108,
+                    97,
+                    110,
+                    97,
+                    95,
+                    100,
+                    97,
+                    105,
+                    95,
+                    118,
+                    97,
+                    117,
+                    108,
+                    116
+                  ]
+                },
+                {
+                  "kind": "account",
+                  "path": "owner"
+                }
+              ]
+            }
+          },
+          {
+            "name": "dai_mint",
+            "writable": true
+          },
+          {
+            "name": "user_dai_account",
+            "writable": true,
+            "pda": {
+              "seeds": [
+                {
+                  "kind": "account",
+                  "path": "owner"
+                },
+                {
+                  "kind": "const",
+                  "value": [
+                    6,
+                    221,
+                    246,
+                    225,
+                    215,
+                    101,
+                    161,
+                    147,
+                    217,
+                    203,
+                    225,
+                    70,
+                    206,
+                    235,
+                    121,
+                    172,
+                    28,
+                    180,
+                    133,
+                    237,
+                    95,
+                    91,
+                    55,
+                    145,
+                    58,
+                    140,
+                    245,
+                    133,
+                    126,
+                    255,
+                    0,
+                    169
+                  ]
+                },
+                {
+                  "kind": "account",
+                  "path": "dai_mint"
+                }
+              ],
+              "program": {
+                "kind": "const",
+                "value": [
+                  140,
+                  151,
+                  37,
+                  143,
+                  78,
+                  36,
+                  137,
+                  241,
+                  187,
+                  61,
+                  16,
+                  41,
+                  20,
+                  142,
+                  13,
+                  131,
+                  11,
+                  90,
+                  19,
+                  153,
+                  218,
+                  255,
+                  16,
+                  132,
+                  4,
+                  142,
+                  123,
+                  216,
+                  219,
+                  233,
+                  248,
+                  89
+                ]
+              }
+            }
+          },
+          {
+            "name": "vault_authority",
+            "pda": {
+              "seeds": [
+                {
+                  "kind": "const",
+                  "value": [
+                    115,
+                    111,
+                    108,
+                    97,
+                    110,
+                    97,
+                    95,
+                    100,
+                    97,
+                    105,
+                    95,
+                    118,
+                    97,
+                    117,
+                    108,
+                    116,
+                    95,
+                    97,
+                    117,
+                    116,
+                    104,
+                    111,
+                    114,
+                    105,
+                    116,
+                    121
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "name": "price_update"
+          },
+          {
+            "name": "token_program",
+            "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+          },
+          {
+            "name": "system_program",
+            "address": "11111111111111111111111111111111"
+          },
+          {
+            "name": "rent",
+            "address": "SysvarRent111111111111111111111111111111111"
+          },
+          {
+            "name": "associated_token_program",
+            "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+          }
+        ],
+        "args": [
+          {
+            "name": "amount",
+            "type": "u64"
+          }
+        ]
+      },
+      {
+        "name": "withdraw",
+        "discriminator": [
+          183,
+          18,
+          70,
+          156,
+          148,
+          109,
+          161,
+          34
+        ],
+        "accounts": [
+          {
+            "name": "owner",
+            "writable": true,
+            "signer": true
+          },
+          {
+            "name": "system_state",
+            "writable": true,
+            "pda": {
+              "seeds": [
+                {
+                  "kind": "const",
+                  "value": [
+                    115,
+                    111,
+                    108,
+                    97,
+                    110,
+                    97,
+                    95,
+                    100,
+                    97,
+                    105,
+                    95,
+                    115,
+                    121,
+                    115,
+                    116,
+                    101,
+                    109,
+                    95,
+                    115,
+                    116,
+                    97,
+                    116,
+                    101
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "name": "vault",
+            "writable": true,
+            "pda": {
+              "seeds": [
+                {
+                  "kind": "const",
+                  "value": [
+                    115,
+                    111,
+                    108,
+                    97,
+                    110,
+                    97,
+                    95,
+                    100,
+                    97,
+                    105,
+                    95,
+                    118,
+                    97,
+                    117,
+                    108,
+                    116
+                  ]
+                },
+                {
+                  "kind": "account",
+                  "path": "owner"
+                }
+              ]
+            }
+          },
+          {
+            "name": "vault_authority",
+            "writable": true,
+            "pda": {
+              "seeds": [
+                {
+                  "kind": "const",
+                  "value": [
+                    115,
+                    111,
+                    108,
+                    97,
+                    110,
+                    97,
+                    95,
+                    100,
+                    97,
+                    105,
+                    95,
+                    118,
+                    97,
+                    117,
+                    108,
+                    116,
+                    95,
+                    97,
+                    117,
+                    116,
+                    104,
+                    111,
+                    114,
+                    105,
+                    116,
+                    121
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "name": "system_program",
+            "address": "11111111111111111111111111111111"
+          }
+        ],
+        "args": [
+          {
+            "name": "amount",
+            "type": "u64"
+          }
+        ]
+      }
+    ],
+    "accounts": [
+      {
+        "name": "Owner",
+        "discriminator": [
+          165,
+          244,
+          246,
+          95,
+          129,
+          120,
+          224,
+          155
+        ],
+        "type": {
+          "kind": "struct",
+          "fields": [
+            {
+              "name": "_reserved",
+              "type": "u8"
+            }
+          ]
+        }
+      },
+      {
+        "name": "SystemState",
+        "discriminator": [
+          136,
+          108,
+          211,
+          163,
+          181,
+          137,
+          229,
+          240
+        ],
+        "type": {
+          "kind": "struct",
+          "fields": [
+            {
+              "name": "admin",
+              "type": "publicKey"
+            },
+            {
+              "name": "dai_mint",
+              "type": "publicKey"
+            },
+            {
+              "name": "total_debt",
+              "type": "u64"
+            },
+            {
+              "name": "total_collateral",
+              "type": "u64"
+            },
+            {
+              "name": "bump",
+              "type": "u8"
+            },
+            {
+              "name": "vault_authority_bump",
+              "type": "u8"
+            }
+          ]
+        }
+      },
+      {
+        "name": "Vault",
+        "discriminator": [
+          211,
+          8,
+          232,
+          43,
+          2,
+          152,
+          117,
+          119
+        ],
+        "type": {
+          "kind": "struct",
+          "fields": [
+            {
+              "name": "owner",
+              "type": "publicKey"
+            },
+            {
+              "name": "collateral",
+              "type": "u64"
+            },
+            {
+              "name": "debt",
+              "type": "u64"
+            },
+            {
+              "name": "initialized",
+              "type": "bool"
+            },
+            {
+              "name": "bump",
+              "type": "u8"
+            }
+          ]
+        }
+      },
+      {
+        "name": "VaultAuthority",
+        "discriminator": [
+          132,
+          34,
+          187,
+          202,
+          202,
+          195,
+          211,
+          53
+        ],
+        "type": {
+          "kind": "struct",
+          "fields": [
+            {
+              "name": "_reserved",
+              "type": "u8"
+            }
+          ]
+        }
+      }
+    ],
+    "errors": [
+      {
+        "code": 6000,
+        "name": "VaultNotInitialized",
+        "msg": "Vault not initialized"
+      },
+      {
+        "code": 6001,
+        "name": "BelowCollateralRatio",
+        "msg": "Below minimum collateral ratio"
+      },
+      {
+        "code": 6002,
+        "name": "OverCollateralRatio",
+        "msg": "Over minimum collateral ratio"
+      },
+      {
+        "code": 6003,
+        "name": "InsufficientCollateral",
+        "msg": "Insufficient collateral"
+      },
+      {
+        "code": 6004,
+        "name": "InsufficientDebt",
+        "msg": "Insufficient debt"
+      },
+      {
+        "code": 6005,
+        "name": "HasOutstandingDebt",
+        "msg": "User has outstanding debt"
+      },
+      {
+        "code": 6006,
+        "name": "PythPriceFeedNotFound",
+        "msg": "Pyth price feed not found"
+      },
+      {
+        "code": 6007,
+        "name": "PythPriceNotAvailable",
+        "msg": "Pyth price not available"
+      },
+      {
+        "code": 6008,
+        "name": "MathOverflow",
+        "msg": "Math overflow"
+      }
+    ],
+    "types": [
+      {
+        "name": "Owner",
+        "type": {
+          "kind": "struct",
+          "fields": [
+            {
+              "name": "_reserved",
+              "type": "u8"
+            }
+          ]
+        }
+      },
+      {
+        "name": "SystemState",
+        "type": {
+          "kind": "struct",
+          "fields": [
+            {
+              "name": "admin",
+              "type": "pubkey"
+            },
+            {
+              "name": "dai_mint",
+              "type": "pubkey"
+            },
+            {
+              "name": "total_debt",
+              "type": "u64"
+            },
+            {
+              "name": "total_collateral",
+              "type": "u64"
+            },
+            {
+              "name": "bump",
+              "type": "u8"
+            },
+            {
+              "name": "vault_authority_bump",
+              "type": "u8"
+            }
+          ]
+        }
+      },
+      {
+        "name": "Vault",
+        "type": {
+          "kind": "struct",
+          "fields": [
+            {
+              "name": "owner",
+              "type": "pubkey"
+            },
+            {
+              "name": "collateral",
+              "type": "u64"
+            },
+            {
+              "name": "debt",
+              "type": "u64"
+            },
+            {
+              "name": "initialized",
+              "type": "bool"
+            },
+            {
+              "name": "bump",
+              "type": "u8"
+            }
+          ]
+        }
+      },
+      {
+        "name": "VaultAuthority",
+        "type": {
+          "kind": "struct",
+          "fields": [
+            {
+              "name": "_reserved",
+              "type": "u8"
+            }
+          ]
+        }
+      }
+    ]
+  }

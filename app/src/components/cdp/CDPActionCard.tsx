@@ -71,17 +71,17 @@ export default function CDPActionCard({
   const getActionDescription = () => {
     switch (actionType) {
       case CDPAction.BOOST:
-        return 'Generate DAI to buy more collateral and add it to your vault';
+        return 'Generate USDE to buy more collateral and add it to your vault';
       case CDPAction.REPAY:
-        return 'Take out collateral to buy DAI and pay back debt';
+        return 'Take out collateral to buy USDE and pay back debt';
       case CDPAction.SUPPLY:
         return 'Add more collateral to your vault';
       case CDPAction.WITHDRAW:
         return 'Withdraw collateral from your vault';
       case CDPAction.BORROW:
-        return 'Generate more DAI from your vault';
+        return 'Generate more USDE from your vault';
       case CDPAction.PAYBACK:
-        return 'Pay back the DAI debt of your vault';
+        return 'Pay back the USDE debt of your vault';
       default:
         return '';
     }
@@ -91,10 +91,10 @@ export default function CDPActionCard({
     switch (actionType) {
       case CDPAction.BOOST:
       case CDPAction.BORROW:
-        return 'DAI to generate';
+        return 'USDE to generate';
       case CDPAction.REPAY:
       case CDPAction.PAYBACK:
-        return 'DAI to pay back';
+        return 'USDE to pay back';
       case CDPAction.SUPPLY:
       case CDPAction.WITHDRAW:
         return `${cdp.asset.symbol} amount`;
