@@ -7,3 +7,7 @@ solana-test-validator --url mainnet-beta --clone 7UVimffxr9ow1uXYxsr4LHAcV58mLzh
 ```bash
 anchor test --skip-local-validator
 ```
+Alternatively run with docker
+```bash
+docker compose run anchor build
+```
