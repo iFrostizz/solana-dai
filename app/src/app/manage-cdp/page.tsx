@@ -15,7 +15,6 @@ import {
   PYTH_SOL_USD_PRICE_ACCOUNT, 
   findSystemStatePDA 
 } from '@/utils/solanaDaiInteractions';
-import { SolanaDai } from '@/idl/solana_dai'; 
 
 const DAI_DECIMALS = 6; 
 const DAI_FACTOR = new BN(10).pow(new BN(DAI_DECIMALS));
@@ -47,7 +46,7 @@ export default function ManageCDP() {
   }, [connected, publicKey, connection, isMounted, anchorWallet]); 
 
   // Modified to accept program instance
-  const updateCollateralRatio = useCallback(async (prog: Program<SolanaDai> | null) => {
+  const updateCollateralRatio = useCallback(async (prog: Program | null) => {
     if (!prog || !publicKey) return;
 
     setIsFetchingRatio(true);
@@ -65,7 +64,7 @@ export default function ManageCDP() {
   }, [publicKey, connection]); 
 
   useEffect(() => {
-    const fetchInitialData = async (prog: Program<SolanaDai>) => { 
+    const fetchInitialData = async (prog: Program) => { 
         if (!publicKey) return; 
 
         setIsFetchingSystemState(true);

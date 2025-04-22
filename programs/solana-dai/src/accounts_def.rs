@@ -172,7 +172,8 @@ pub struct Burn<'info> {
     #[account(mut)]
     pub owner: Signer<'info>,
 
-    pub price_update: Account<'info, PriceUpdateV2>,
+    /// CHECK: Pyth price feed account. Safety: This account is checked for correct address and deserialized in instruction logic.
+    pub price_update: AccountInfo<'info>,
 
     #[account(
         mut,
@@ -190,7 +191,7 @@ pub struct Burn<'info> {
     pub vault_authority: Account<'info, VaultAuthority>,
 
     pub system_program: Program<'info, System>,
-    pub token_program: Interface<'info, TokenInterface>,
+    pub token_program: Program<'info, Token>,
 }
 
 #[derive(Accounts)]
@@ -199,7 +200,8 @@ pub struct Liquidate<'info> {
 
     pub owner: Account<'info, Owner>,
 
-    pub price_update: Account<'info, PriceUpdateV2>,
+    /// CHECK: Pyth price feed account. Safety: This account is checked for correct address and deserialized in instruction logic.
+    pub price_update: AccountInfo<'info>,
 
     #[account(
         mut,

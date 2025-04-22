@@ -14,13 +14,12 @@ import {
   Commitment,
 } from "@solana/web3.js";
 import { AnchorWallet } from "@solana/wallet-adapter-react";
-import { SolanaDai } from "../idl/solana_dai"; 
-import idl from "../../../target/idl/solana_dai.json"; 
+import idl from "../idl/solana_dai.json"; 
 import { TOKEN_PROGRAM_ID, getAssociatedTokenAddressSync } from "@solana/spl-token";
 import { PythHttpClient, getPythProgramKeyForCluster } from '@pythnetwork/client';
 
 export const SOLANA_DAI_PROGRAM_ID = new PublicKey(
-  "BnG9CbMoLRcpHvCsDiAuF36T8jMxXpWSGCWDn68gGxKz"
+  "H4TppkUN6CSgNBm4VWmccwF2UJ7qV1BpunbZV3vXkehB"
 );
 
 // Placeholder: Replace with the actual Pyth SOL/USD Price Feed ID for your cluster
@@ -37,14 +36,14 @@ const USER_VAULT_SEED = Buffer.from("solana_dai_vault");
 export const getProgram = (
   connection: Connection,
   wallet: AnchorWallet
-): Program<SolanaDai> => {
+): Program => {
   const provider = new AnchorProvider(connection, wallet, {
     preflightCommitment: "processed",
     commitment: "processed",
   });
   // Correct argument order: (idl, programId, provider)
-  const program = new Program<SolanaDai>(
-    idl as Idl, // Cast imported JSON to generic Idl
+  const program = new Program(
+    idl as Idl, // Use the imported JSON IDL
     SOLANA_DAI_PROGRAM_ID,
     provider
   );
@@ -82,7 +81,7 @@ export const findUserVaultPDA = (owner: PublicKey) => {
  * NOTE: The daiMint PublicKey must be an initialized Mint account *before* calling this.
  */
 export const createInitializeInstruction = async (
-  program: Program<SolanaDai>,
+  program: Program,
   admin: PublicKey,
   daiMint: PublicKey
 ) => {
@@ -110,7 +109,7 @@ export const createInitializeInstruction = async (
  * If the vault doesn't exist, it will be initialized.
  */
 export const createDepositInstruction = async (
-  program: Program<SolanaDai>,
+  program: Program,
   owner: PublicKey,
   amountLamports: BN
 ) => {
@@ -135,7 +134,7 @@ export const createDepositInstruction = async (
  * Creates the instruction to mint DAI against deposited collateral.
  */
 export const createMintInstruction = async (
-  program: Program<SolanaDai>,
+  program: Program,
   owner: PublicKey,
   amountDaiLamports: BN, // Amount of DAI to mint (considering decimals)
   daiMint: PublicKey, // The PublicKey of the DAI mint
@@ -205,7 +204,7 @@ function calculateUsdValue(amountLamports: BN, priceData: { price: string | unde
  * Returns null if the vault is not initialized or price data is unavailable.
  */
 export const getCollateralRatio = async (
-  program: Program<SolanaDai>,
+  program: Program,
   connection: Connection,
   owner: PublicKey,
   priceUpdateAccount: PublicKey // The Pyth PriceFeed ID (e.g., SOL/USD Feed ID)

@@ -29,6 +29,12 @@ enum ErrorCode {
     InsufficientDebt,
     #[msg("User has outstanding debt")]
     HasOutstandingDebt,
+    #[msg("Pyth price feed not found")]
+    PythPriceFeedNotFound,
+    #[msg("Pyth price not available")]
+    PythPriceNotAvailable,
+    #[msg("Math overflow")]
+    MathOverflow,
 }
 
 #[program]
@@ -220,7 +226,7 @@ pub mod solana_dai {
             .checked_div(100)
             .unwrap();
 
-        require!(collateral_value >= min_collateral_required, ErrorCode::BelowCollateralRatio);
+        require!(collateral_value >= min_collateral_required as u128, ErrorCode::BelowCollateralRatio);
 
         vault.debt = new_debt;
 
@@ -262,7 +268,7 @@ pub mod solana_dai {
             .checked_div(100)
             .unwrap();
 
-        require!(collateral_value < min_collateral_required, ErrorCode::OverCollateralRatio);
+        require!(collateral_value < min_collateral_required as u128, ErrorCode::OverCollateralRatio);
 
         let system_program = &ctx.accounts.system_program;
         let vault_authority_info = &ctx.accounts.vault_authority;
@@ -285,6 +291,22 @@ pub mod solana_dai {
         msg!("Liquidated vault with collateral value of {} USD", vault.collateral);
         Ok(())
     }
+}
+
+fn get_latest_price(price_update: &AccountInfo) -> Result<(i64, i32)> {
+    let price_feed = pyth_sdk_solana::state::SolanaPriceAccount::account_info_to_feed(price_update)
+        .map_err(|_| error!(ErrorCode::PythPriceFeedNotFound))?;
+    let current_timestamp = Clock::get()?.unix_timestamp;
+    let price = price_feed.get_price_no_older_than(current_timestamp, 60)
+        .ok_or(ErrorCode::PythPriceNotAvailable)?;
+    Ok((price.price, price.expo))
+}
+
+fn calculate_usd_value(sol_lamports: u64, price_tuple: (i64, i32)) -> u128 {
+    // Use 6 decimals for DAI
+    let (price, exponent) = price_tuple;
+    // Reuse the scaled version for consistency
+    calculate_usd_value_scaled(sol_lamports, price, exponent, 6).unwrap_or(0)
 }
 
 fn calculate_usd_value_scaled(sol_lamports: u64, price: i64, exponent: i32, dai_decimals: u32) -> Result<u128> {
