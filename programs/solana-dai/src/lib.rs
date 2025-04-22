@@ -226,6 +226,7 @@ pub mod solana_dai {
             amount,
         )?;
 
+        msg!("Burned {} Solana DAI", amount);
         Ok(())
     }
 
@@ -267,6 +268,7 @@ pub mod solana_dai {
         vault.collateral = 0;
         vault.debt = 0;
 
+        msg!("Liquidated vault with collateral value of {} USD", vault.collateral);
         Ok(())
     }
 }
